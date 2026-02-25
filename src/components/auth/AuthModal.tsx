@@ -31,7 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         // Successful login - close modal or redirect
         onClose();
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -41,9 +41,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           },
         });
         if (error) throw error;
-        // Successful signup
-        alert('Cadastro realizado! Verifique seu email para confirmar.');
-        onClose();
+        
+        if (data.session) {
+            // Auto-confirmed (or disabled confirmation)
+            onClose();
+        } else {
+            // Needs confirmation
+            alert('Cadastro realizado! Se o email de confirmação não chegar em instantes, verifique sua caixa de spam.');
+            setIsLogin(true); // Switch to login mode
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro. Tente novamente.');

@@ -1,12 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Upload, Wand2, Sliders, Shield, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { Check, ArrowRight, Upload, Wand2, Sliders, Shield, ChevronDown, ChevronUp, User, LogOut, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
+import { supabase } from '../lib/supabaseClient';
 
 const ArchVizLanding = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleSubscribe = async (plan: 'starter' | 'pro') => {
+    if (!user) {
+      setIsAuthOpen(true);
+      return;
+    }
+
+    setLoadingPlan(plan);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan,
+          email: user.email,
+          userId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Erro ao iniciar checkout. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro ao conectar com o servidor de pagamento.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -30,26 +88,64 @@ const ArchVizLanding = () => {
             <span>ArchRender <span className="text-violet-400">AI</span></span>
           </div>
           
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-            <a href="#how-it-works" className="hover:text-white transition-colors">Como funciona</a>
-            <a href="#presets" className="hover:text-white transition-colors">Estilos</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Planos</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-            <button 
-              onClick={() => setIsAuthOpen(true)}
-              className="hover:text-white transition-colors flex items-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              Login
-            </button>
-          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <div className="flex items-center gap-6 text-sm font-medium text-slate-400">
+              <a href="#how-it-works" className="hover:text-white transition-colors">Como funciona</a>
+              <a href="#presets" className="hover:text-white transition-colors">Estilos</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Planos</a>
+            </div>
 
-          <button 
-            onClick={() => setIsAuthOpen(true)}
-            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5"
-          >
-            Começar — R$ 97/mês
-          </button>
+            {user ? (
+              <div className="flex items-center gap-4 pl-6 border-l border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden lg:block">
+                    <div className="text-xs font-bold text-white">
+                      {user.user_metadata?.full_name?.split(' ')[0] || 'Conta'}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      {user.email?.split('@')[0]}
+                    </div>
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 p-[1px] shadow-lg shadow-violet-500/20">
+                    <div className="w-full h-full rounded-full bg-[#0B1221] flex items-center justify-center text-xs font-bold text-white">
+                      {user.email?.[0].toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+
+                <Link 
+                  to="/vusk-ai"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-black font-bold text-xs hover:bg-slate-200 transition-colors shadow-lg shadow-white/5"
+                >
+                  Abrir App
+                </Link>
+                
+                <button 
+                  onClick={handleLogout}
+                  className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title="Sair"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setIsAuthOpen(true)}
+                  className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  Login
+                </button>
+                <button 
+                  onClick={() => setIsAuthOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5"
+                >
+                  Começar — R$ 97/mês
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -266,9 +362,13 @@ const ArchVizLanding = () => {
                 <li>• Editor de prompt guiado</li>
                 <li>• Atualizações contínuas</li>
               </ul>
-              <a href="#" className="flex items-center justify-center w-full py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors">
-                Assinar agora
-              </a>
+              <button 
+                onClick={() => handleSubscribe('starter')}
+                disabled={loadingPlan === 'starter'}
+                className="flex items-center justify-center w-full py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors disabled:opacity-50"
+              >
+                {loadingPlan === 'starter' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar agora'}
+              </button>
             </div>
 
             {/* Pro */}
@@ -288,9 +388,13 @@ const ArchVizLanding = () => {
                 <li>• Prioridade de geração</li>
                 <li>• Suporte prioritário</li>
               </ul>
-              <a href="#" className="flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all">
-                Assinar Pro
-              </a>
+              <button 
+                onClick={() => handleSubscribe('pro')}
+                disabled={loadingPlan === 'pro'}
+                className="flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all disabled:opacity-50"
+              >
+                {loadingPlan === 'pro' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar Pro'}
+              </button>
             </div>
 
             {/* Enterprise */}

@@ -46,6 +46,71 @@ async function startServer() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Create Checkout Session Endpoint
+  app.post('/api/create-checkout-session', express.json(), async (req, res) => {
+    const { plan, email, userId } = req.body;
+
+    if (!plan || !email) {
+      return res.status(400).json({ error: 'Plan and email are required' });
+    }
+
+    let priceInCents = 0;
+    let productName = '';
+    let description = '';
+
+    switch (plan) {
+      case 'starter':
+        priceInCents = 9700; // R$ 97.00
+        productName = 'ArchRender AI - Starter';
+        description = '200 renders/mês • Presets profissionais';
+        break;
+      case 'pro':
+        priceInCents = 14700; // R$ 147.00
+        productName = 'ArchRender AI - Pro';
+        description = '500 renders/mês • Presets premium • Prioridade';
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid plan' });
+    }
+
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'brl',
+              product_data: {
+                name: productName,
+                description: description,
+              },
+              unit_amount: priceInCents,
+              recurring: {
+                interval: 'month',
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${req.headers.origin}/arch-viz?success=true&plan=${plan}`,
+        cancel_url: `${req.headers.origin}/arch-viz?canceled=true`,
+        customer_email: email,
+        metadata: {
+          tab: 'architecture', // Using 'architecture' as the tab/feature name based on previous webhook logic
+          plan: plan,
+          userId: userId,
+          duration_days: '30' // For webhook logic compatibility
+        },
+      });
+
+      res.json({ url: session.url });
+    } catch (err: any) {
+      console.error('Error creating checkout session:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Stripe Webhook Endpoint
   app.post('/api/webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];

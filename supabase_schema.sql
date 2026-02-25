@@ -1,24 +1,43 @@
--- Create profiles table
-CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT UNIQUE NOT NULL,
-  identity_expiry TIMESTAMPTZ,
-  architecture_expiry TIMESTAMPTZ,
-  marketplace_expiry TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+-- Create a table for public profiles
+create table profiles (
+  id uuid references auth.users on delete cascade not null primary key,
+  email text unique,
+  full_name text,
+  avatar_url text,
+  website text,
+  updated_at timestamp with time zone,
+  
+  -- Subscription/Access Expiry Dates
+  identity_expiry timestamp with time zone,
+  architecture_expiry timestamp with time zone,
+  marketplace_expiry timestamp with time zone,
+
+  constraint username_length check (char_length(full_name) >= 3)
 );
 
--- Create index on email for faster lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
+-- Set up Row Level Security (RLS)
+-- See https://supabase.com/docs/guides/auth/row-level-security for more details.
+alter table profiles enable row level security;
 
--- Enable Row Level Security (RLS)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+create policy "Public profiles are viewable by everyone." on profiles
+  for select using (true);
 
--- Create policy to allow users to read their own profile
-CREATE POLICY "Users can view own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+create policy "Users can insert their own profile." on profiles
+  for insert with check (auth.uid() = id);
 
--- Create policy to allow service role (backend) to insert/update
-CREATE POLICY "Service role can manage all profiles" ON profiles
-  FOR ALL USING (true) WITH CHECK (true);
+create policy "Users can update own profile." on profiles
+  for update using (auth.uid() = id);
+
+-- This trigger automatically creates a profile entry when a new user signs up via Auth.
+create function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
