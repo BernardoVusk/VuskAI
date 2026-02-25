@@ -19,9 +19,9 @@ import {
 } from "../lib/prompts";
 
 const getClient = (): GoogleGenAI => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not defined");
+    throw new Error("GEMINI_API_KEY is not defined. Please add VITE_GEMINI_API_KEY to your environment variables.");
   }
   return new GoogleGenAI({ apiKey });
 };
