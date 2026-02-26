@@ -21,7 +21,29 @@ import {
 const getClient = (): GoogleGenAI => {
   // In Vite, process.env is not defined in the browser, so we must safely check it
   // or just rely on import.meta.env
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  let apiKey = '';
+  try {
+    // Try process.env first (for Netlify functions)
+    if (typeof process !== 'undefined' && process.env && process.env.VITE_GEMINI_API_KEY) {
+      apiKey = process.env.VITE_GEMINI_API_KEY;
+    } else if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+      apiKey = process.env.GEMINI_API_KEY;
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  if (!apiKey) {
+    try {
+      // Try import.meta.env (for Vite frontend)
+      if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+        apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not defined. Please add VITE_GEMINI_API_KEY to your environment variables.");
   }

@@ -41,3 +41,29 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Create a table for analysis history (Background Functions)
+create table history (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  status text not null default 'processando',
+  mode text not null,
+  result jsonb,
+  error text,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+alter table history enable row level security;
+
+create policy "Users can view their own history." on history
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own history." on history
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update their own history." on history
+  for update using (auth.uid() = user_id);
+
+-- Enable realtime for history table
+alter publication supabase_realtime add table history;

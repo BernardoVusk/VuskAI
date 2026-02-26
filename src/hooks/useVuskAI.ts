@@ -1,11 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AnalysisMode, AnalysisResult, AppStatus, UserSubscriptions, PlanType } from '../types';
 import {
-  analyzeReferenceImage,
-  analyzeLifestyleImage,
-  analyzeCinematicImage,
-  analyzeMarketplaceImage,
-  analyzeArchitectureImage,
   generateIdentityImage,
   generateLifestyleImage,
   generateCinematicImage,
@@ -165,36 +160,78 @@ export const useVuskAI = () => {
 
   const handleAnalyze = async () => {
     if (!checkSubscription()) return;
-    if (!state.image) return;
+    if (!state.image || !state.user) {
+      if (!state.user) {
+        setState(prev => ({ ...prev, error: "Você precisa estar logado para usar esta função." }));
+      }
+      return;
+    }
 
     setState(prev => ({ ...prev, status: AppStatus.ANALYZING, error: null, analysis: null }));
 
     try {
-      let result: AnalysisResult;
       const base64 = state.image.split(',')[1];
       const mimeType = state.image.split(';')[0].split(':')[1];
 
-      switch (state.mode) {
-        case AnalysisMode.IDENTITY:
-          result = await analyzeReferenceImage(base64, mimeType);
-          break;
-        case AnalysisMode.LIFESTYLE:
-          result = await analyzeLifestyleImage(base64, mimeType);
-          break;
-        case AnalysisMode.CINEMATIC:
-          result = await analyzeCinematicImage(base64, mimeType);
-          break;
-        case AnalysisMode.MARKETPLACE:
-          result = await analyzeMarketplaceImage(base64, mimeType);
-          break;
-        case AnalysisMode.ARCHITECTURE:
-          result = await analyzeArchitectureImage(base64, mimeType);
-          break;
-        default:
-          throw new Error("Invalid analysis mode");
+      // 1. Create a row in the history table
+      const { data: historyData, error: historyError } = await supabase
+        .from('history')
+        .insert({
+          user_id: state.user.id,
+          mode: state.mode,
+          status: 'processando'
+        })
+        .select()
+        .single();
+
+      if (historyError || !historyData) {
+        throw new Error("Erro ao criar registro de análise no banco de dados.");
       }
 
-      setState(prev => ({ ...prev, analysis: result, status: AppStatus.REVIEW }));
+      const historyId = historyData.id;
+
+      // 2. Call the Netlify Background Function
+      const response = await fetch('/.netlify/functions/analyze-image-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          historyId,
+          base64Image: base64,
+          mimeType,
+          mode: state.mode
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao iniciar a análise em segundo plano.");
+      }
+
+      // 3. Listen for updates on the history row using Supabase Realtime
+      const channel = supabase
+        .channel(`history_updates_${historyId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'history',
+            filter: `id=eq.${historyId}`
+          },
+          (payload) => {
+            const newRecord = payload.new;
+            if (newRecord.status === 'concluído') {
+              setState(prev => ({ ...prev, analysis: newRecord.result as AnalysisResult, status: AppStatus.REVIEW }));
+              supabase.removeChannel(channel);
+            } else if (newRecord.status === 'erro') {
+              setState(prev => ({ ...prev, status: AppStatus.ERROR, error: newRecord.error || "Erro durante a análise." }));
+              supabase.removeChannel(channel);
+            }
+          }
+        )
+        .subscribe();
+
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Analysis failed due to an unknown error.";
       setState(prev => ({ ...prev, status: AppStatus.ERROR, error: message }));

@@ -85,8 +85,7 @@ const ArchVizLanding = () => {
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#05070D]/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20" />
-            <span>ArchRender <span className="text-violet-400">AI</span></span>
+            <img src="/logo.png" alt="ArchRender AI" className="h-8 object-contain" />
           </div>
           
           <div className="hidden md:flex items-center gap-8">
@@ -475,38 +474,6 @@ const ArchVizLanding = () => {
                 )}
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 to-indigo-900/20" />
-        <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
-          <div className="p-10 rounded-3xl border border-violet-500/30 bg-[#0B1221]/80 backdrop-blur-xl shadow-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-              Pare de perder horas no 3D só para “mostrar uma ideia”.
-            </h2>
-            <p className="text-lg text-slate-400 mb-8">
-              Envie a imagem do seu projeto e gere renders que vendem o conceito.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              <a 
-                href="#pricing"
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5"
-              >
-                Começar agora — R$ 97/mês
-              </a>
-              <a 
-                href="#examples"
-                className="px-8 py-4 rounded-xl border border-white/10 bg-white/5 text-slate-200 font-semibold hover:bg-white/10 transition-all"
-              >
-                Ver exemplos
-              </a>
-            </div>
-            <div className="text-xs text-slate-500 font-medium">
-              Pagamento seguro • Acesso imediato • Suporte
-            </div>
           </div>
         </div>
       </section>
