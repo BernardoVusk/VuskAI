@@ -32,7 +32,7 @@ const ArchVizLanding = () => {
 
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const handleSubscribe = async (plan: 'starter' | 'pro') => {
+  const handleSubscribe = async (plan: 'mensal' | 'trimestral' | 'semestral') => {
     if (!user) {
       setIsAuthOpen(true);
       return;
@@ -41,11 +41,12 @@ const ArchVizLanding = () => {
     setLoadingPlan(plan);
     try {
       let stripeLink = '';
-      if (plan === 'starter') {
-        stripeLink = 'https://buy.stripe.com/test_aFacMZ9JPaO27sI8xEcfK01';
-      } else if (plan === 'pro') {
-        // Substitua este link pelo link de pagamento real do plano Pro
-        stripeLink = 'https://buy.stripe.com/test_pro_placeholder'; 
+      if (plan === 'mensal') {
+        stripeLink = 'https://buy.stripe.com/test_9B6cMZ9JP2hw8wM4hocfK03';
+      } else if (plan === 'trimestral') {
+        stripeLink = 'https://buy.stripe.com/test_00weV7cW13lAdR67tAcfK04'; 
+      } else if (plan === 'semestral') {
+        stripeLink = 'https://buy.stripe.com/test_00wbIV4pvcWa7sI6pwcfK05';
       }
 
       if (stripeLink) {
@@ -141,7 +142,7 @@ const ArchVizLanding = () => {
                   onClick={() => setIsAuthOpen(true)}
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5"
                 >
-                  Começar — R$ 97/mês
+                  Começar agora
                 </button>
               </div>
             )}
@@ -154,7 +155,7 @@ const ArchVizLanding = () => {
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center">
           <div>
             <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-              Transforme sua planta baixa em um render profissional em segundos.
+              Transforme seu desenho tecnico em um render profissional em <span className="text-violet-500">30 segundos.</span>
             </h1>
             <p className="text-lg text-slate-400 leading-relaxed max-w-xl mb-8">
               Sem modelagem 3D. Sem perder horas. Você envia a imagem e gera uma visualização ultra realista pronta para apresentar ao cliente.
@@ -180,7 +181,7 @@ const ArchVizLanding = () => {
                 href="#pricing"
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5"
               >
-                Começar agora — R$ 97/mês
+                Começar agora
               </a>
               <a 
                 href="#examples"
@@ -350,69 +351,77 @@ const ArchVizLanding = () => {
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Starter */}
             <div className="p-6 rounded-2xl border border-white/5 bg-[#0B1221]">
-              <div className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">Básico</div>
-              <h3 className="text-2xl font-bold mb-2">Starter</h3>
+              <div className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">BÁSICO</div>
+              <h3 className="text-2xl font-bold mb-2">Mensal</h3>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold tracking-tight">R$ 97</span>
+                <span className="text-4xl font-bold tracking-tight">R$ 147</span>
                 <span className="text-slate-500 font-medium">/ mês</span>
               </div>
               <ul className="space-y-3 mb-8 text-sm text-slate-400">
-                <li>• 200 renders/mês</li>
+                <li>• +1500 prompt/mês</li>
                 <li>• Presets profissionais</li>
                 <li>• Editor de prompt guiado</li>
                 <li>• Atualizações contínuas</li>
               </ul>
               <button 
-                onClick={() => handleSubscribe('starter')}
-                disabled={loadingPlan === 'starter'}
+                onClick={() => handleSubscribe('mensal')}
+                disabled={loadingPlan === 'mensal'}
                 className="flex items-center justify-center w-full py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors disabled:opacity-50"
               >
-                {loadingPlan === 'starter' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar agora'}
+                {loadingPlan === 'mensal' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar agora'}
               </button>
             </div>
 
             {/* Pro */}
             <div className="relative p-6 rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-900/20 to-[#0B1221] md:-translate-y-4">
               <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-xs font-bold text-violet-300">
-                Recomendado
+                Oferta Exclusiva
               </div>
-              <div className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">Melhor custo-benefício</div>
-              <h3 className="text-2xl font-bold mb-2">Pro</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold tracking-tight">R$ 147</span>
+              <div className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-2">MELHOR CUSTO-BENEFÍCIO</div>
+              <h3 className="text-2xl font-bold mb-2">Trimestral</h3>
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-2xl font-bold tracking-tight text-slate-500 line-through mr-2">R$110</span>
+                <span className="text-4xl font-bold tracking-tight">R$92</span>
                 <span className="text-slate-500 font-medium">/ mês</span>
               </div>
+              <div className="text-sm font-bold text-violet-400 mb-6">+ 3 MESES GRÁTIS</div>
               <ul className="space-y-3 mb-8 text-sm text-slate-300">
-                <li>• 500 renders/mês</li>
+                <li>• +3500 prompt/mês</li>
                 <li>• Presets premium</li>
                 <li>• Prioridade de geração</li>
-                <li>• Suporte prioritário</li>
+                <li>• Geração de prompts Premium</li>
               </ul>
               <button 
-                onClick={() => handleSubscribe('pro')}
-                disabled={loadingPlan === 'pro'}
+                onClick={() => handleSubscribe('trimestral')}
+                disabled={loadingPlan === 'trimestral'}
                 className="flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white font-bold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all disabled:opacity-50"
               >
-                {loadingPlan === 'pro' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar Pro'}
+                {loadingPlan === 'trimestral' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar Pro'}
               </button>
             </div>
 
             {/* Enterprise */}
             <div className="p-6 rounded-2xl border border-white/5 bg-[#0B1221]">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Para escritórios</div>
-              <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-bold tracking-tight">Sob consulta</span>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">BÁSICO</div>
+              <h3 className="text-2xl font-bold mb-2">Semestral</h3>
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-4xl font-bold tracking-tight">99</span>
+                <span className="text-slate-500 font-medium">/ mês</span>
               </div>
+              <div className="text-sm text-slate-500 mb-6">R$599,90 / mês</div>
               <ul className="space-y-3 mb-8 text-sm text-slate-400">
                 <li>• Alto volume</li>
-                <li>• Onboarding do time</li>
+                <li>• Geração de prompts Premium</li>
                 <li>• Presets custom</li>
                 <li>• Atendimento dedicado</li>
               </ul>
-              <a href="#" className="flex items-center justify-center w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-slate-300 font-bold">
-                Falar no WhatsApp
-              </a>
+              <button 
+                onClick={() => handleSubscribe('semestral')}
+                disabled={loadingPlan === 'semestral'}
+                className="flex items-center justify-center w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors text-slate-300 font-bold disabled:opacity-50"
+              >
+                {loadingPlan === 'semestral' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Assinar agora'}
+              </button>
             </div>
           </div>
 

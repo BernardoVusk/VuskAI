@@ -399,7 +399,7 @@ export const refinePrompt = async (originalPrompt: string, instruction: string):
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: { text: prompt },
+      contents: prompt,
     });
 
     if (!response.text) {

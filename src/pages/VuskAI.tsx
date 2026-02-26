@@ -366,25 +366,27 @@ const VuskAI = () => {
                 )}
               </div>
 
-              {/* Generate Action */}
-              <div className="p-4 bg-black/20 backdrop-blur-sm border-t border-white/5 z-20 flex-shrink-0">
-                 <Button 
-                  variant="custom"
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]" 
-                  onClick={handleGenerate}
-                  disabled={!analysis || status === AppStatus.GENERATING || !!error}
-                >
-                  {status === AppStatus.GENERATING ? (
-                    <>
-                      <Loader2 size={16} className="mr-2 animate-spin" /> RENDERING_PIXELS...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} className="mr-2" /> GENERATE_FINAL_ASSET
-                    </>
-                  )}
-                </Button>
-              </div>
+              {/* Generate Action - Hidden for Architecture mode */}
+              {mode !== AnalysisMode.ARCHITECTURE && (
+                <div className="p-4 bg-black/20 backdrop-blur-sm border-t border-white/5 z-20 flex-shrink-0">
+                   <Button 
+                    variant="custom"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]" 
+                    onClick={handleGenerate}
+                    disabled={!analysis || status === AppStatus.GENERATING || !!error}
+                  >
+                    {status === AppStatus.GENERATING ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" /> RENDERING_PIXELS...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} className="mr-2" /> GENERATE_FINAL_ASSET
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
             </GlassCard>
           </div>

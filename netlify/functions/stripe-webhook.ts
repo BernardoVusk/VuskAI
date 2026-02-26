@@ -46,8 +46,23 @@ export const handler: Handler = async (event) => {
     if (userId) {
       console.log(`Processing purchase for user ID ${userId}`);
       try {
-        // Adiciona 30 dias de acesso
-        const durationDays = 30;
+        // Obter os itens da sessão para saber qual produto foi comprado
+        const sessionWithLineItems = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ['line_items'],
+        });
+
+        const productId = sessionWithLineItems.line_items?.data[0]?.price?.product as string;
+        
+        let durationDays = 30; // default
+        
+        if (productId === 'prod_U3E2ifOzafgWGf=' || productId === 'prod_U3E2ifOzafgWGf') {
+           durationDays = 30; // Mensal
+        } else if (productId === 'prod_U2tG41c3kqvP95') {
+           durationDays = 180; // Trimestral (180 dias)
+        } else if (productId === 'prod_U3E50YPdiGLs85') {
+           durationDays = 180; // Semestral (180 dias)
+        }
+
         const now = new Date();
         const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
@@ -61,7 +76,7 @@ export const handler: Handler = async (event) => {
           return { statusCode: 500, body: 'Failed to update user' };
         }
         
-        console.log(`Successfully updated architecture_expiry for user ID ${userId}`);
+        console.log(`Successfully updated architecture_expiry for user ID ${userId} with ${durationDays} days`);
       } catch (err) {
         console.error('Error processing webhook logic:', err);
         return { statusCode: 500, body: 'Internal Server Error' };
