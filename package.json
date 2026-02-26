@@ -32,6 +32,7 @@
     "three": "^0.183.1"
   },
   "devDependencies": {
+    "@netlify/functions": "^5.1.2",
     "@tailwindcss/postcss": "^4.2.0",
     "@types/body-parser": "^1.19.6",
     "@types/cors": "^2.8.19",
