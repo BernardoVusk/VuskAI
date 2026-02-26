@@ -21,7 +21,7 @@ import {
 const getClient = (): GoogleGenAI => {
   // In Vite, process.env is not defined in the browser, so we must safely check it
   // or just rely on import.meta.env
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : undefined);
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not defined. Please add VITE_GEMINI_API_KEY to your environment variables.");
   }
