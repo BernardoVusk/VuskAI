@@ -1,4 +1,77 @@
 import { ActivationKey, PlanType, UserSubscriptions, AnalysisMode, ModeSubscription } from '../types';
+import { supabase } from '../lib/supabaseClient';
+
+export const fetchUserSubscriptions = async (): Promise<UserSubscriptions> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return {};
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('identity_expiry, architecture_expiry, marketplace_expiry')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !profile) return {};
+
+    const now = new Date();
+    const subs: UserSubscriptions = {};
+
+    const checkExpiry = (expiryDateStr: string | null, mode: AnalysisMode) => {
+      if (expiryDateStr) {
+        const expiryDate = new Date(expiryDateStr);
+        if (expiryDate > now) {
+          subs[mode] = {
+            isActive: true,
+            plan: PlanType.PRO_30_DAYS, // Or derive from actual plan if stored
+            startDate: new Date().toISOString(), // We don't have start date in DB currently, using now as placeholder
+            expiresAt: expiryDate.toISOString(),
+          };
+        }
+      }
+    };
+
+    checkExpiry(profile.identity_expiry, AnalysisMode.IDENTITY);
+    checkExpiry(profile.architecture_expiry, AnalysisMode.ARCHITECTURE);
+    checkExpiry(profile.marketplace_expiry, AnalysisMode.MARKETPLACE);
+    
+    // Lifestyle and Cinematic don't have DB columns yet, so they remain locked by default
+    // unless we add them to the DB.
+
+    return subs;
+  } catch (error) {
+    console.error("Error fetching subscriptions:", error);
+    return {};
+  }
+};
+
+// Keep local storage as fallback for the mock keys if needed, but prefer DB
+const STORAGE_KEY = 'vusk_subscriptions_v2';
+
+export const getLocalSubscriptions = (): UserSubscriptions => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return {};
+
+  try {
+    const subs = JSON.parse(stored) as UserSubscriptions;
+    const now = new Date();
+    
+    const activeSubs: UserSubscriptions = {};
+    Object.entries(subs).forEach(([mode, sub]) => {
+      if (sub && new Date(sub.expiresAt) > now) {
+        activeSubs[mode as AnalysisMode] = sub;
+      }
+    });
+    
+    if (Object.keys(activeSubs).length !== Object.keys(subs).length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(activeSubs));
+    }
+    
+    return activeSubs;
+  } catch {
+    return {};
+  }
+};
 
 // Mock database of keys
 const MOCK_KEYS: Record<string, ActivationKey> = {
@@ -20,35 +93,6 @@ const MOCK_KEYS: Record<string, ActivationKey> = {
 
   // Master Key (All Access)
   'VUSK-MASTER-KEY': { key: 'VUSK-MASTER-KEY', plan: PlanType.PRO_30_DAYS, mode: 'ALL', durationDays: 30, isUsed: false, createdAt: new Date().toISOString() },
-};
-
-const STORAGE_KEY = 'vusk_subscriptions_v2';
-
-export const getSubscriptions = (): UserSubscriptions => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return {};
-
-  try {
-    const subs = JSON.parse(stored) as UserSubscriptions;
-    const now = new Date();
-    
-    // Filter out expired subscriptions
-    const activeSubs: UserSubscriptions = {};
-    Object.entries(subs).forEach(([mode, sub]) => {
-      if (sub && new Date(sub.expiresAt) > now) {
-        activeSubs[mode as AnalysisMode] = sub;
-      }
-    });
-    
-    // If any expired, update storage
-    if (Object.keys(activeSubs).length !== Object.keys(subs).length) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(activeSubs));
-    }
-    
-    return activeSubs;
-  } catch {
-    return {};
-  }
 };
 
 export const validateAndActivateKey = async (inputKey: string): Promise<{ mode: AnalysisMode | 'ALL', subscription: ModeSubscription }> => {
@@ -77,7 +121,7 @@ export const validateAndActivateKey = async (inputKey: string): Promise<{ mode: 
     expiresAt: expiresAt.toISOString(),
   };
 
-  const currentSubs = getSubscriptions();
+  const currentSubs = getLocalSubscriptions();
 
   if (keyData.mode === 'ALL') {
     // Activate for all modes
@@ -95,5 +139,7 @@ export const validateAndActivateKey = async (inputKey: string): Promise<{ mode: 
 };
 
 export const clearSubscriptions = () => {
+
   localStorage.removeItem(STORAGE_KEY);
 };
+

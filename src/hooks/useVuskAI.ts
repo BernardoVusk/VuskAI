@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { AnalysisMode, AnalysisResult, AppStatus, UserSubscriptions } from '../types';
+import { AnalysisMode, AnalysisResult, AppStatus, UserSubscriptions, PlanType } from '../types';
 import {
   analyzeReferenceImage,
   analyzeLifestyleImage,
@@ -13,7 +13,8 @@ import {
   generateArchitectureImage,
   refinePrompt
 } from '../services/geminiService';
-import { getSubscriptions, validateAndActivateKey, clearSubscriptions } from '../services/activationService';
+import { validateAndActivateKey } from '../services/activationService';
+import { supabase } from '../lib/supabaseClient';
 
 interface UseVuskAIState {
   mode: AnalysisMode;
@@ -25,27 +26,103 @@ interface UseVuskAIState {
   subscriptions: UserSubscriptions;
   isKeyModalOpen: boolean;
   isRefining: boolean;
+  user: any | null;
 }
 
 export const useVuskAI = () => {
   const [state, setState] = useState<UseVuskAIState>({
-    mode: AnalysisMode.IDENTITY,
+    mode: AnalysisMode.ARCHITECTURE, // Defaulting to Architecture as requested
     image: null,
     analysis: null,
     status: AppStatus.IDLE,
     resultImage: null,
     error: null,
-    subscriptions: getSubscriptions(),
+    subscriptions: {},
     isKeyModalOpen: false,
     isRefining: false,
+    user: null,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fetchSubscriptions = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      const now = new Date();
+      const subs: UserSubscriptions = {};
+
+      // Check Architecture
+      if (data.architecture_expiry && new Date(data.architecture_expiry) > now) {
+        subs[AnalysisMode.ARCHITECTURE] = {
+          isActive: true,
+          plan: PlanType.PRO_30_DAYS,
+          startDate: new Date().toISOString(), // We don't store start date in this simple schema
+          expiresAt: data.architecture_expiry,
+        };
+      }
+
+      // Check Identity
+      if (data.identity_expiry && new Date(data.identity_expiry) > now) {
+        subs[AnalysisMode.IDENTITY] = {
+          isActive: true,
+          plan: PlanType.PRO_30_DAYS,
+          startDate: new Date().toISOString(),
+          expiresAt: data.identity_expiry,
+        };
+      }
+
+      // Check Marketplace
+      if (data.marketplace_expiry && new Date(data.marketplace_expiry) > now) {
+        subs[AnalysisMode.MARKETPLACE] = {
+          isActive: true,
+          plan: PlanType.PRO_30_DAYS,
+          startDate: new Date().toISOString(),
+          expiresAt: data.marketplace_expiry,
+        };
+      }
+
+      setState(prev => ({ ...prev, subscriptions: subs }));
+    } catch (err) {
+      console.error('Failed to fetch subscriptions:', err);
+    }
+  };
+
   useEffect(() => {
-    // Check subscriptions on mount
-    const subs = getSubscriptions();
-    setState(prev => ({ ...prev, subscriptions: subs }));
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null;
+      setState(prev => ({ ...prev, user }));
+      if (user) {
+        fetchSubscriptions(user.id);
+      } else {
+        setState(prev => ({ ...prev, subscriptions: {} }));
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      setState(prev => ({ ...prev, user }));
+      if (user) {
+        fetchSubscriptions(user.id);
+      } else {
+        setState(prev => ({ ...prev, subscriptions: {} }));
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const setMode = (mode: AnalysisMode) => {
@@ -76,15 +153,13 @@ export const useVuskAI = () => {
   };
 
   const checkSubscription = (targetMode: AnalysisMode = state.mode): boolean => {
-    const subs = getSubscriptions();
-    const isSubscribed = !!subs[targetMode]?.isActive;
+    const isSubscribed = !!state.subscriptions[targetMode]?.isActive;
     
     if (!isSubscribed) {
-      setState(prev => ({ ...prev, isKeyModalOpen: true, subscriptions: subs }));
+      setState(prev => ({ ...prev, isKeyModalOpen: true }));
       return false;
     }
     
-    setState(prev => ({ ...prev, subscriptions: subs }));
     return true;
   };
 
@@ -183,15 +258,33 @@ export const useVuskAI = () => {
   };
 
   const activateKey = async (key: string) => {
+    // We keep this for backward compatibility with the mock keys if needed,
+    // but ideally activation should be handled via Stripe/Supabase.
     try {
       const { mode: activatedMode } = await validateAndActivateKey(key);
-      const updatedSubs = getSubscriptions();
+      
+      // If we want to sync this to Supabase, we would do it here.
+      // For now, we just update local state to allow immediate access if they use a mock key.
+      const now = new Date();
+      const newExpiry = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      
+      if (state.user) {
+         let column = '';
+         if (activatedMode === AnalysisMode.ARCHITECTURE) column = 'architecture_expiry';
+         if (activatedMode === AnalysisMode.IDENTITY) column = 'identity_expiry';
+         if (activatedMode === AnalysisMode.MARKETPLACE) column = 'marketplace_expiry';
+         
+         if (column) {
+            await supabase.from('profiles').update({ [column]: newExpiry }).eq('id', state.user.id);
+            await fetchSubscriptions(state.user.id);
+         }
+      }
+
       setState(prev => ({ 
         ...prev, 
-        subscriptions: updatedSubs, 
         isKeyModalOpen: false, 
         error: null,
-        mode: activatedMode === 'ALL' ? prev.mode : activatedMode
+        mode: activatedMode === 'ALL' ? prev.mode : activatedMode as AnalysisMode
       }));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Activation failed.";
@@ -201,9 +294,9 @@ export const useVuskAI = () => {
 
   const closeKeyModal = () => setState(prev => ({ ...prev, isKeyModalOpen: false }));
   const openKeyModal = () => setState(prev => ({ ...prev, isKeyModalOpen: true }));
-  const logout = () => {
-    clearSubscriptions();
-    setState(prev => ({ ...prev, subscriptions: {} }));
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setState(prev => ({ ...prev, subscriptions: {}, user: null }));
   };
 
   const resetError = () => setState(prev => ({ ...prev, error: null, status: AppStatus.IDLE }));

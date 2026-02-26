@@ -132,84 +132,34 @@ async function startServer() {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       
-      // Extract metadata
-      // Expected metadata: { tab: 'identity' | 'architecture' | 'marketplace', duration_days: '30' }
-      const tabName = session.metadata?.tab; 
-      const durationDays = parseInt(session.metadata?.duration_days || '0', 10);
+      const userId = session.client_reference_id;
       const userEmail = session.customer_details?.email;
 
-      if (userEmail && tabName && durationDays > 0) {
-        console.log(`Processing purchase for ${userEmail}: ${tabName} for ${durationDays} days`);
-
+      // If client_reference_id is present, we assume it's the architecture plan from the payment link
+      if (userId) {
+        console.log(`Processing purchase for user ID ${userId}`);
         try {
-          // 1. Check if user exists
-          const { data: existingUser, error: fetchError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('email', userEmail)
-            .single();
-
-          // PGRST116 is "No rows found" - handled by checking existingUser
-          if (fetchError && fetchError.code !== 'PGRST116') {
-            console.error('Error fetching user:', fetchError);
-            return res.status(500).send('Database error');
-          }
-
-          // Calculate new expiry date
+          // Calculate new expiry date (e.g., 30 days for monthly plan)
+          const durationDays = 30;
           const now = new Date();
           const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-          // Map tab name to column name
-          let columnToUpdate = '';
-          switch (tabName.toLowerCase()) {
-            case 'identity':
-              columnToUpdate = 'identity_expiry';
-              break;
-            case 'architecture':
-              columnToUpdate = 'architecture_expiry';
-              break;
-            case 'marketplace':
-              columnToUpdate = 'marketplace_expiry';
-              break;
-            default:
-              console.warn(`Unknown tab name: ${tabName}`);
-              return res.status(400).send('Invalid tab name in metadata');
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ architecture_expiry: newExpiryDate.toISOString() })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('Error updating user:', updateError);
+            return res.status(500).send('Failed to update user');
           }
-
-          if (existingUser) {
-            // Update existing user
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ [columnToUpdate]: newExpiryDate.toISOString() })
-              .eq('email', userEmail);
-
-            if (updateError) {
-              console.error('Error updating user:', updateError);
-              return res.status(500).send('Failed to update user');
-            }
-            console.log(`Updated expiry for ${userEmail}`);
-          } else {
-            // Create new user
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                email: userEmail,
-                [columnToUpdate]: newExpiryDate.toISOString(),
-              });
-
-            if (insertError) {
-              console.error('Error creating user:', insertError);
-              return res.status(500).send('Failed to create user');
-            }
-            console.log(`Created new profile for ${userEmail}`);
-          }
-
+          console.log(`Updated architecture_expiry for user ID ${userId}`);
         } catch (err) {
           console.error('Error processing webhook logic:', err);
           return res.status(500).send('Internal Server Error');
         }
       } else {
-        console.warn('Missing required metadata or email in session');
+        console.warn('Missing client_reference_id in session. Cannot activate plan.');
       }
     }
 

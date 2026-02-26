@@ -40,27 +40,27 @@ const ArchVizLanding = () => {
 
     setLoadingPlan(plan);
     try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan,
-          email: user.email,
-          userId: user.id,
-        }),
-      });
+      let stripeLink = '';
+      if (plan === 'starter') {
+        stripeLink = 'https://buy.stripe.com/test_aFacMZ9JPaO27sI8xEcfK01';
+      } else if (plan === 'pro') {
+        // Substitua este link pelo link de pagamento real do plano Pro
+        stripeLink = 'https://buy.stripe.com/test_pro_placeholder'; 
+      }
 
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Erro ao iniciar checkout. Tente novamente.');
+      if (stripeLink) {
+        const url = new URL(stripeLink);
+        url.searchParams.append('client_reference_id', user.id);
+        if (user.email) {
+          url.searchParams.append('prefilled_email', user.email);
+        }
+        // Stripe Checkout não permite ser aberto dentro de iframes (como o preview do AI Studio)
+        // Por isso, precisamos abrir em uma nova aba
+        window.open(url.toString(), '_blank');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Erro ao conectar com o servidor de pagamento.');
+      alert('Erro ao redirecionar para o pagamento.');
     } finally {
       setLoadingPlan(null);
     }
