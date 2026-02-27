@@ -103,13 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="w-64 h-screen sticky top-0 flex flex-col border-r border-white/5 bg-[#050505]/80 backdrop-blur-2xl p-4 flex-shrink-0">
       <div className="mb-8 px-2">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <span className="font-bold text-white">V</span>
-          </div>
-          <span className="font-display font-bold text-lg text-white tracking-tight">VuskVision</span>
-        </div>
-        <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase pl-10">
-          Neural Engine v6.0
+          <img src="/logo.png.png" alt="VuskVision" className="h-12 object-contain" />
         </div>
       </div>
 

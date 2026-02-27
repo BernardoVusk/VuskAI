@@ -76,6 +76,14 @@ const VuskAI = () => {
 
   const currentSubscription = subscriptions[mode];
 
+  const calculateRemainingDays = (expiryDate: string) => {
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
   return (
     <div className="relative flex min-h-screen bg-black">
       <AuroraBackground />
@@ -110,7 +118,7 @@ const VuskAI = () => {
               key={mode}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight mb-1"
+              className="text-2xl md:text-3xl font-display text-white tracking-tight mb-1"
             >
               {mode.replace('_', ' ')} <span className="text-violet-500">PROTOCOL</span>
             </motion.h1>
@@ -124,7 +132,7 @@ const VuskAI = () => {
               {currentSubscription ? (
                 <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 py-0.5 h-5 text-[10px]">
                   <Unlock size={10} className="mr-1" />
-                  {currentSubscription.plan.replace(/_/g, ' ')}
+                  PRO {calculateRemainingDays(currentSubscription.expiresAt)} DAYS
                 </Badge>
               ) : (
                  <Badge variant="outline" className="border-red-500/30 text-red-400 bg-red-500/10 py-0.5 h-5 text-[10px] cursor-pointer hover:bg-red-500/20" onClick={openKeyModal}>

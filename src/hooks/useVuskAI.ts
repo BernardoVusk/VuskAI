@@ -190,8 +190,8 @@ export const useVuskAI = () => {
 
       const historyId = historyData.id;
 
-      // 2. Call the Netlify Background Function
-      const response = await fetch('/.netlify/functions/analyze-image-background', {
+      // 2. Call the Express API
+      const response = await fetch('/api/analyze-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

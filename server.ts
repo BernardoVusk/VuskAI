@@ -41,6 +41,83 @@ async function startServer() {
   });
 
   // --- API Routes ---
+  
+  // Image Analysis Endpoint (Replacing Netlify function)
+  app.post('/api/analyze-image', async (req, res) => {
+    const { historyId, base64Image, mimeType, mode } = req.body;
+
+    if (!historyId || !base64Image || !mode) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // We'll handle the analysis in the background to not block the request
+    // and update the Supabase record when done.
+    res.json({ status: 'processing' });
+
+    try {
+      // In a real production app, we'd use a queue. 
+      // Here we'll just do it in the background of the process.
+      const { GoogleGenAI } = await import('@google/genai');
+      const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is missing on server');
+      }
+
+      const genAI = new GoogleGenAI({ apiKey });
+      
+      let prompt = '';
+      if (mode === 'ARCHITECTURE') {
+        prompt = 'ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".';
+      } else {
+        prompt = 'ACT AS: "Reverse Engineering Photography Analyst". Analyze the image and return JSON with "physicalDescription" and "suggestedPrompt".';
+      }
+
+      const result = await genAI.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType || 'image/jpeg',
+                data: base64Image
+              }
+            },
+            { text: prompt }
+          ]
+        }
+      });
+
+      const text = result.text;
+      
+      if (!text) {
+        throw new Error('No response text from Gemini');
+      }
+      
+      // Clean up JSON response
+      const cleanJson = text.replace(/```json\n?|\n?```/g, "").trim();
+      const parsedResult = JSON.parse(cleanJson);
+
+      // Update Supabase
+      await supabase
+        .from('history')
+        .update({ 
+          status: 'concluído', 
+          result: parsedResult 
+        })
+        .eq('id', historyId);
+
+    } catch (err: any) {
+      console.error('Background analysis error:', err);
+      await supabase
+        .from('history')
+        .update({ 
+          status: 'erro', 
+          error: err.message 
+        })
+        .eq('id', historyId);
+    }
+  });
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
