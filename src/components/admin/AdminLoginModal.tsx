@@ -24,7 +24,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    if (username === 'VuskAI' && password === 'AI123') {
+    if (username === 'ArchRender' && password === 'AI123') {
       localStorage.setItem('isAdminAuthenticated', 'true');
       navigate('/admin');
       onClose();

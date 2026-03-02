@@ -13,11 +13,10 @@ import {
   generateArchitectureImage,
   refinePrompt
 } from '../services/geminiService';
-import { IDENTITY_ENFORCEMENT } from '../lib/prompts';
 import { fetchUserSubscriptions, getLocalSubscriptions, validateAndActivateKey, clearSubscriptions } from '../services/activationService';
 import { supabase } from '../lib/supabaseClient';
 
-interface UseVuskAIState {
+interface UseArchRenderState {
   mode: AnalysisMode;
   image: string | null;
   analysis: AnalysisResult | null;
@@ -31,8 +30,8 @@ interface UseVuskAIState {
   isAdmin: boolean;
 }
 
-export const useVuskAI = () => {
-  const [state, setState] = useState<UseVuskAIState>({
+export const useArchRender = () => {
+  const [state, setState] = useState<UseArchRenderState>({
     mode: AnalysisMode.ARCHITECTURE, // Defaulting to Architecture as requested
     image: null,
     analysis: null,
@@ -307,13 +306,7 @@ export const useVuskAI = () => {
     setState(prev => ({ ...prev, isRefining: true, error: null }));
 
     try {
-      let updatedPrompt = await refinePrompt(state.analysis.suggestedPrompt, instruction);
-      
-      // Ensure Identity enforcement is preserved in Identity mode
-      if (state.mode === AnalysisMode.IDENTITY && !updatedPrompt.includes(IDENTITY_ENFORCEMENT)) {
-        updatedPrompt = `${updatedPrompt.trim()} ${IDENTITY_ENFORCEMENT}`;
-      }
-
+      const updatedPrompt = await refinePrompt(state.analysis.suggestedPrompt, instruction);
       setState(prev => ({
         ...prev,
         isRefining: false,

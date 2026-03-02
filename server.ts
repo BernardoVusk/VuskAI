@@ -36,7 +36,7 @@ async function startServer() {
     if (req.originalUrl === '/api/webhook') {
       next();
     } else {
-      express.json()(req, res, next);
+      express.json({ limit: '10mb' })(req, res, next);
     }
   });
 
@@ -44,79 +44,7 @@ async function startServer() {
   
   // Image Analysis Endpoint (Replacing Netlify function)
   app.post('/api/analyze-image', async (req, res) => {
-    const { historyId, base64Image, mimeType, mode } = req.body;
-
-    if (!historyId || !base64Image || !mode) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // We'll handle the analysis in the background to not block the request
-    // and update the Supabase record when done.
-    res.json({ status: 'processing' });
-
-    try {
-      // In a real production app, we'd use a queue. 
-      // Here we'll just do it in the background of the process.
-      const { GoogleGenAI } = await import('@google/genai');
-      const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-      
-      if (!apiKey) {
-        throw new Error('GEMINI_API_KEY is missing on server');
-      }
-
-      const genAI = new GoogleGenAI({ apiKey });
-      
-      let prompt = '';
-      if (mode === 'ARCHITECTURE') {
-        prompt = 'ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".';
-      } else {
-        prompt = 'ACT AS: "Reverse Engineering Photography Analyst". Analyze the image and return JSON with "physicalDescription" and "suggestedPrompt".';
-      }
-
-      const result = await genAI.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                mimeType: mimeType || 'image/jpeg',
-                data: base64Image
-              }
-            },
-            { text: prompt }
-          ]
-        }
-      });
-
-      const text = result.text;
-      
-      if (!text) {
-        throw new Error('No response text from Gemini');
-      }
-      
-      // Clean up JSON response
-      const cleanJson = text.replace(/```json\n?|\n?```/g, "").trim();
-      const parsedResult = JSON.parse(cleanJson);
-
-      // Update Supabase
-      await supabase
-        .from('history')
-        .update({ 
-          status: 'concluído', 
-          result: parsedResult 
-        })
-        .eq('id', historyId);
-
-    } catch (err: any) {
-      console.error('Background analysis error:', err);
-      await supabase
-        .from('history')
-        .update({ 
-          status: 'erro', 
-          error: err.message 
-        })
-        .eq('id', historyId);
-    }
+    res.status(410).json({ error: 'This endpoint is deprecated. Use frontend Gemini integration.' });
   });
 
   app.get('/api/health', (req, res) => {
@@ -211,32 +139,73 @@ async function startServer() {
       
       const userId = session.client_reference_id;
       const userEmail = session.customer_details?.email;
+      const metadata = session.metadata || {};
 
-      // If client_reference_id is present, we assume it's the architecture plan from the payment link
-      if (userId) {
-        console.log(`Processing purchase for user ID ${userId}`);
+      let targetUserId = userId;
+
+      // If userId is missing, try to find the user by email in the profiles table
+      if (!targetUserId && userEmail) {
+        console.log(`Searching for user with email: ${userEmail}`);
         try {
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', userEmail)
+            .single();
+          
+          if (!userError && userData) {
+            targetUserId = userData.id;
+            console.log(`Found user ID ${targetUserId} for email ${userEmail}`);
+          } else {
+            console.warn(`Could not find profile for email ${userEmail}. Error: ${userError?.message}`);
+          }
+        } catch (err) {
+          console.error('Error searching for user by email:', err);
+        }
+      }
+
+      if (targetUserId) {
+        console.log(`Processing purchase for user ID ${targetUserId}`);
+        try {
+          // Determine which mode to unlock
+          // 1. Check metadata
+          // 2. Check product ID (if we had them)
+          // 3. Default to architecture
+          const modeToUnlock = metadata.tab || 'architecture';
+          
           // Calculate new expiry date (e.g., 30 days for monthly plan)
-          const durationDays = 30;
+          const durationDays = parseInt(metadata.duration_days || '30', 10);
           const now = new Date();
           const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
+          const updates: any = {};
+          if (modeToUnlock === 'architecture') {
+            updates.architecture_expiry = newExpiryDate.toISOString();
+          } else if (modeToUnlock === 'marketplace') {
+            updates.marketplace_expiry = newExpiryDate.toISOString();
+          } else if (modeToUnlock === 'identity') {
+            updates.identity_expiry = newExpiryDate.toISOString();
+          } else {
+            // Default fallback
+            updates.architecture_expiry = newExpiryDate.toISOString();
+          }
+
           const { error: updateError } = await supabase
             .from('profiles')
-            .update({ architecture_expiry: newExpiryDate.toISOString() })
-            .eq('id', userId);
+            .update(updates)
+            .eq('id', targetUserId);
 
           if (updateError) {
             console.error('Error updating user:', updateError);
             return res.status(500).send('Failed to update user');
           }
-          console.log(`Updated architecture_expiry for user ID ${userId}`);
+          console.log(`Updated ${modeToUnlock}_expiry for user ID ${targetUserId}`);
         } catch (err) {
           console.error('Error processing webhook logic:', err);
           return res.status(500).send('Internal Server Error');
         }
       } else {
-        console.warn('Missing client_reference_id in session. Cannot activate plan.');
+        console.warn('Missing client_reference_id and could not find user by email. Cannot activate plan.');
       }
     }
 

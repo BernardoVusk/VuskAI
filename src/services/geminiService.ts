@@ -15,7 +15,8 @@ import {
   CINEMA_TECH_SPECS,
   TEXTURE_OVERLOAD_BLOCK,
   EYE_REALISM_BOOSTER,
-  LIFESTYLE_PHYSICS
+  LIFESTYLE_PHYSICS,
+  IDENTITY_ENFORCEMENT
 } from "../lib/prompts";
 
 const getClient = (): GoogleGenAI => {
@@ -163,12 +164,12 @@ export const analyzeReferenceImage = async (base64Image: string, mimeType: strin
     **PARAGRAPH 3 (CHARACTERISTICS):** Describe the technical image characteristics, lighting, optics, imperfections, and camera settings.
 
     **START WITH:** "The most real and human possible..." (in the characteristics paragraph or implicitly handled by the prefix).
-    **END WITH:** "...f/1.8, ISO 200, Background fully sharp."
+    **END WITH:** "...f/1.8, ISO 200, Background fully sharp. ${IDENTITY_ENFORCEMENT}"
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
+      model: 'gemini-flash-latest', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -234,7 +235,7 @@ export const analyzeLifestyleImage = async (base64Image: string, mimeType: strin
   `;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
+      model: 'gemini-flash-latest', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -292,7 +293,7 @@ export const analyzeCinematicImage = async (base64Image: string, mimeType: strin
   `;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
+      model: 'gemini-flash-latest', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -331,7 +332,7 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
   `;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
+      model: 'gemini-flash-latest', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -359,7 +360,7 @@ export const analyzeArchitectureImage = async (base64Image: string, mimeType: st
   const prompt = `ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".`;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
+      model: 'gemini-flash-latest', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -387,7 +388,7 @@ export const createHookPrompt = async (userIdea: string): Promise<{ imagePrompt:
   const prompt = `Create raw POV prompts for: "${userIdea}". Return JSON.`;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: { text: prompt },
       config: {
         responseMimeType: 'application/json',
@@ -420,7 +421,7 @@ export const refinePrompt = async (originalPrompt: string, instruction: string):
   const prompt = `Update prompt: "${originalPrompt}" with instruction: "${instruction}". Keep original format. Return ONLY updated string.`;
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: prompt,
     });
 
@@ -465,6 +466,7 @@ export const generateIdentityImage = async (base64Ref: string, desc: string, sce
     ${scene}
     
     **STYLE:** Casual, unedited smartphone photography.
+    ${IDENTITY_ENFORCEMENT}
     ${SUFFIX}
   `;
   

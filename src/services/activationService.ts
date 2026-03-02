@@ -99,7 +99,50 @@ export const validateAndActivateKey = async (inputKey: string): Promise<{ mode: 
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const keyData = MOCK_KEYS[inputKey];
+  let keyData = MOCK_KEYS[inputKey];
+
+  // If not in MOCK_KEYS, try to parse the pattern
+  if (!keyData) {
+    const parts = inputKey.split('-');
+    if (parts.length === 3) {
+      const [prefix, planCode, random] = parts;
+      
+      let mode: AnalysisMode | 'ALL' | null = null;
+      if (prefix === 'VUSK') mode = 'ALL';
+      else if (prefix === 'IDE') mode = AnalysisMode.IDENTITY;
+      else if (prefix === 'LIF') mode = AnalysisMode.LIFESTYLE;
+      else if (prefix === 'CIN') mode = AnalysisMode.CINEMATIC;
+      else if (prefix === 'MAR') mode = AnalysisMode.MARKETPLACE;
+      else if (prefix === 'ARC') mode = AnalysisMode.ARCHITECTURE;
+
+      let plan: PlanType | null = null;
+      let durationDays = 0;
+      if (planCode === 'TRIAL') {
+        plan = PlanType.TRIAL;
+        durationDays = 1;
+      } else if (planCode === '1') {
+        plan = PlanType.PRO_1_DAY;
+        durationDays = 1;
+      } else if (planCode === '7') {
+        plan = PlanType.PRO_7_DAYS;
+        durationDays = 7;
+      } else if (planCode === '30') {
+        plan = PlanType.PRO_30_DAYS;
+        durationDays = 30;
+      }
+
+      if (mode && plan && durationDays > 0) {
+        keyData = {
+          key: inputKey,
+          plan,
+          mode,
+          durationDays,
+          isUsed: false,
+          createdAt: new Date().toISOString()
+        };
+      }
+    }
+  }
 
   if (!keyData) {
     throw new Error("Invalid activation key.");
@@ -126,11 +169,13 @@ export const validateAndActivateKey = async (inputKey: string): Promise<{ mode: 
   if (keyData.mode === 'ALL') {
     // Activate for all modes
     Object.values(AnalysisMode).forEach(mode => {
-      currentSubs[mode] = newSubscription;
+      if (mode !== AnalysisMode.ADMIN_KEYS) {
+        currentSubs[mode] = newSubscription;
+      }
     });
   } else {
     // Activate for specific mode
-    currentSubs[keyData.mode] = newSubscription;
+    currentSubs[keyData.mode as AnalysisMode] = newSubscription;
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSubs));

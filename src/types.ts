@@ -10,6 +10,7 @@ export enum AnalysisMode {
   CINEMATIC = 'CINEMATIC',
   MARKETPLACE = 'MARKETPLACE',
   ARCHITECTURE = 'ARCHITECTURE',
+  ADMIN_KEYS = 'ADMIN_KEYS',
 }
 
 export interface AnalysisError {
@@ -57,3 +58,31 @@ export interface ModeSubscription {
 }
 
 export type UserSubscriptions = Partial<Record<AnalysisMode, ModeSubscription>>;
+
+export interface AcademyModule {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  created_at: string;
+}
+
+export interface AcademyLesson {
+  id: string;
+  module_id: string;
+  title: string;
+  video_id: string;
+  description: string;
+  order: number;
+  created_at: string;
+}
+
+export interface NeuralLibraryItem {
+  id: string;
+  name: string;
+  prompt_text: string;
+  image_before_url: string;
+  image_after_url: string;
+  category: string;
+  created_at: string;
+}

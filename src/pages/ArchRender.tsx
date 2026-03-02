@@ -13,7 +13,6 @@ import {
   Check, 
   Lock, 
   Unlock,
-  Plus,
   ArrowRight,
   Activity,
   Cpu,
@@ -31,18 +30,14 @@ import { Badge } from '../components/ui/Badge';
 import { AuroraBackground } from '../components/visuals/AuroraBackground';
 import { NeuralGrid } from '../components/visuals/NeuralGrid';
 import { cn } from '../lib/utils';
-import { useVuskAI } from '../hooks/useVuskAI';
+import { useArchRender } from '../hooks/useArchRender';
 import { AnalysisMode, AppStatus } from '../types';
 import { KeyActivationModal } from '../components/ui/KeyActivationModal';
 import { Sidebar } from '../components/layout/Sidebar';
 import { KeyGenerator } from '../components/admin/KeyGenerator';
 import { Academy } from '../components/academy/Academy';
-import { Library } from '../components/library/Library';
-import { VideoPromptManager } from '../components/admin/VideoPromptManager';
-import { NeuralLock } from '../components/ui/NeuralLock';
-import { supabase } from '../lib/supabaseClient';
 
-const VuskAI = () => {
+const ArchRender = () => {
   const {
     mode,
     image,
@@ -66,52 +61,18 @@ const VuskAI = () => {
     isRefining,
     isAdmin,
     clearImage
-  } = useVuskAI();
+  } = useArchRender();
 
   const [isCopied, setIsCopied] = useState(false);
   const [isVideoPromptCopied, setIsVideoPromptCopied] = useState(false);
   const [selectedVideoStyle, setSelectedVideoStyle] = useState('');
-  const [isVideoManagerOpen, setIsVideoManagerOpen] = useState(false);
-  const [dbVideoStyles, setDbVideoStyles] = useState<any[]>([]);
   const [refinementText, setRefinementText] = useState('');
   const [archVizSubTab, setArchVizSubTab] = useState<'ai' | 'prompts' | 'aulas'>('ai');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    fetchDbVideoStyles();
   }, []);
-
-  const fetchDbVideoStyles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('video_prompts')
-        .select('*')
-        .order('category', { ascending: true });
-      
-      if (error) {
-        // Table might not exist yet, ignore silently or log
-        console.log('Video prompts table might not exist yet');
-        return;
-      }
-
-      if (data) {
-        // Group by category
-        const grouped = data.reduce((acc: any[], item: any) => {
-          const cat = acc.find(c => c.category === item.category);
-          if (cat) {
-            cat.styles.push({ name: item.name, prompt: item.prompt });
-          } else {
-            acc.push({ category: item.category, styles: [{ name: item.name, prompt: item.prompt }] });
-          }
-          return acc;
-        }, []);
-        setDbVideoStyles(grouped);
-      }
-    } catch (err) {
-      console.error('Error fetching db video styles:', err);
-    }
-  };
 
   const handleCopyPrompt = () => {
     if (analysis?.suggestedPrompt) {
@@ -172,8 +133,6 @@ const VuskAI = () => {
     }
   ];
 
-  const allVideoStyles = [...videoStyles, ...dbVideoStyles];
-
   const handleRefine = async () => {
     if (!refinementText.trim()) return;
     await handleRefinePrompt(refinementText);
@@ -210,17 +169,6 @@ const VuskAI = () => {
         onClose={closeKeyModal} 
         onActivate={activateKey} 
       />
-
-      {/* Video Prompt Manager Modal */}
-      <AnimatePresence>
-        {isVideoManagerOpen && (
-          <VideoPromptManager 
-            onClose={() => setIsVideoManagerOpen(false)} 
-            onUpdate={fetchDbVideoStyles}
-            defaultStyles={videoStyles}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Sidebar Navigation - Floating Style */}
       <div className="hidden lg:block fixed left-6 top-6 bottom-6 z-50">
@@ -261,7 +209,7 @@ const VuskAI = () => {
               {[
                 { id: 'ai', label: 'Gerador AI', icon: Terminal },
                 { id: 'prompts', label: 'Biblioteca', icon: Layout },
-                { id: 'aulas', label: 'Vusk Academy', icon: BookOpen },
+                { id: 'aulas', label: 'ArchRender Academy', icon: BookOpen },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -363,14 +311,8 @@ const VuskAI = () => {
         )}
 
         {/* Content Grid */}
-        <div className="relative flex-1 flex flex-col">
-          <NeuralLock 
-            isActive={!!currentSubscription?.isActive} 
-            onActivate={openKeyModal} 
-          />
-          
-          <AnimatePresence mode="wait">
-            {mode === AnalysisMode.ADMIN_KEYS ? (
+        <AnimatePresence mode="wait">
+          {mode === AnalysisMode.ADMIN_KEYS ? (
             <motion.div
               key="admin-keys"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -403,16 +345,6 @@ const VuskAI = () => {
                 className="flex-1 flex flex-col"
               >
                 <Academy isAdmin={isAdmin} />
-              </motion.div>
-            ) : archVizSubTab === 'prompts' ? (
-              <motion.div
-                key="library"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="flex-1 flex flex-col"
-              >
-                <Library isAdmin={isAdmin} />
               </motion.div>
             ) : (
               <motion.div
@@ -703,25 +635,14 @@ const VuskAI = () => {
                                 
                                 {/* Video Style Prompts Section */}
                                 <div className="mt-10 p-6 rounded-2xl bg-white/5 border border-white/10">
-                                  <div className="flex items-center justify-between mb-6">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                                        <Video size={16} className="text-slate-300" />
-                                      </div>
-                                      <div>
-                                        <div className="text-xs font-semibold text-white">Prompts para Vídeo</div>
-                                        <div className="text-[10px] text-slate-500">Presets cinematográficos</div>
-                                      </div>
+                                  <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                                      <Video size={16} className="text-slate-300" />
                                     </div>
-                                    {isAdmin && (
-                                      <button 
-                                        onClick={() => setIsVideoManagerOpen(true)}
-                                        className="p-2 bg-white/5 border border-white/10 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
-                                        title="Gerenciar Presets"
-                                      >
-                                        <Plus size={14} />
-                                      </button>
-                                    )}
+                                    <div>
+                                      <div className="text-xs font-semibold text-white">Prompts para Vídeo</div>
+                                      <div className="text-[10px] text-slate-500">Presets cinematográficos</div>
+                                    </div>
                                   </div>
 
                                   <div className="space-y-4">
@@ -732,10 +653,10 @@ const VuskAI = () => {
                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white appearance-none focus:outline-none focus:border-white/30 transition-all cursor-pointer"
                                       >
                                         <option value="" disabled>Selecione um estilo de vídeo...</option>
-                                        {allVideoStyles.map((cat, idx) => (
-                                          <optgroup key={`${cat.category}-${idx}`} label={cat.category} className="bg-zinc-900 text-slate-400 text-xs">
-                                            {cat.styles.map((style: any, sIdx: number) => (
-                                              <option key={`${style.name}-${sIdx}`} value={style.prompt} className="text-sm text-white">
+                                        {videoStyles.map((cat) => (
+                                          <optgroup key={cat.category} label={cat.category} className="bg-zinc-900 text-slate-400 text-xs">
+                                            {cat.styles.map((style) => (
+                                              <option key={style.name} value={style.prompt} className="text-sm text-white">
                                                 {style.name}
                                               </option>
                                             ))}
@@ -849,11 +770,9 @@ const VuskAI = () => {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
-      </div>
-    </main>
-  </div>
-);
+        </AnimatePresence>      </main>
+    </div>
+  );
 };
 
-export default VuskAI;
+export default ArchRender;

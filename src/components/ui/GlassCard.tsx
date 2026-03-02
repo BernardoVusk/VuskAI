@@ -14,14 +14,15 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   hoverEffect = false
 }) => {
   return (
-    <div 
+    <motion.div 
+      layout
       className={cn(
-        "relative bg-[#0B0F19]/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden",
-        hoverEffect && "transition-all duration-300 hover:border-white/20 hover:bg-[#0B0F19]/60 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1",
+        "relative bg-[oklch(20%_0.01_250_/_0.4)] backdrop-blur-2xl border border-[oklch(100%_0_0_/_0.1)] rounded-[32px] overflow-hidden",
+        hoverEffect && "transition-all duration-500 hover:border-white/20 hover:bg-black/50 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-[0.98]",
         className
       )}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };

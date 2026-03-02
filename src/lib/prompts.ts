@@ -41,3 +41,5 @@ export const LIFESTYLE_PHYSICS = `
   3. **BANAL LIGHTING:** Prefer harsh overhead fluorescent, hard noon sun, or mixed interior lighting. Avoid "Golden Hour" or perfect "Cinematic" lighting unless explicitly requested.
   4. **RAW SENSOR:** ISO noise (400-800) must be visible. No color grading.
 `;
+
+export const IDENTITY_ENFORCEMENT = "Do not change Subject's facial features. Subjects must look 1000% identical to uploaded images. [DO NOT CHANGE SUBJECT/S' FACIAL FEATURES]";

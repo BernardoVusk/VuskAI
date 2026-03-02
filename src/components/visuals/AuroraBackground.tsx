@@ -16,30 +16,30 @@ export const AuroraBackground: React.FC = () => {
           rotate: [0, 45, -45, 0],
         }}
         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-10%] left-[10%] w-[50vw] h-[50vw] bg-violet-600/30 blur-[120px] rounded-[40%] mix-blend-screen opacity-60 will-change-transform"
+        className="absolute top-[-10%] left-[10%] w-[60vw] h-[60vw] bg-violet-600/20 blur-[140px] rounded-full mix-blend-screen opacity-70 will-change-transform"
       />
 
       {/* Blob 2 - Purple Secondary */}
       <motion.div 
         animate={{ 
-          x: ["20%", "-20%", "10%", "20%"],
-          y: ["10%", "-10%", "20%", "10%"],
-          scale: [1, 1.1, 0.9, 1],
-          rotate: [0, -30, 30, 0],
+          x: ["10%", "-10%", "5%", "10%"],
+          y: ["5%", "-5%", "10%", "5%"],
+          scale: [1, 1.05, 0.95, 1],
+          rotate: [0, -15, 15, 0],
         }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[20%] right-[-10%] w-[45vw] h-[45vw] bg-purple-600/25 blur-[130px] rounded-[45%] mix-blend-screen opacity-50 will-change-transform"
+        className="absolute top-[10%] right-[-5%] w-[50vw] h-[50vw] bg-indigo-600/15 blur-[150px] rounded-full mix-blend-screen opacity-60 will-change-transform"
       />
 
-      {/* Blob 3 - Indigo Deep */}
+      {/* Blob 3 - Deep Blue */}
       <motion.div 
         animate={{ 
-          x: ["-10%", "10%", "-20%", "-10%"],
-          y: ["20%", "-20%", "10%", "20%"],
-          scale: [1, 1.3, 0.8, 1],
+          x: ["-5%", "5%", "-10%", "-5%"],
+          y: ["10%", "-10%", "5%", "10%"],
+          scale: [1, 1.1, 0.9, 1],
         }}
-        transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/40 blur-[150px] rounded-[35%] mix-blend-screen opacity-40 will-change-transform"
+        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[-15%] left-[-5%] w-[70vw] h-[70vw] bg-blue-900/30 blur-[180px] rounded-full mix-blend-screen opacity-50 will-change-transform"
       />
 
       {/* Blob 4 - Fuchsia Accent */}
