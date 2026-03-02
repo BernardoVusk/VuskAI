@@ -36,6 +36,7 @@ import { KeyActivationModal } from '../components/ui/KeyActivationModal';
 import { Sidebar } from '../components/layout/Sidebar';
 import { KeyGenerator } from '../components/admin/KeyGenerator';
 import { Academy } from '../components/academy/Academy';
+import { Library } from '../components/library/Library';
 
 const ArchRender = () => {
   const {
@@ -196,6 +197,7 @@ const ArchRender = () => {
       <AnimatePresence>
         {mode === AnalysisMode.ARCHITECTURE && (
           <motion.div
+            key="arch-nav"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -311,8 +313,14 @@ const ArchRender = () => {
         )}
 
         {/* Content Grid */}
-        <AnimatePresence mode="wait">
-          {mode === AnalysisMode.ADMIN_KEYS ? (
+        <div className="relative flex-1 flex flex-col">
+          {/* Content Wrapper */}
+          <div className={cn(
+            "flex-1 flex flex-col transition-all duration-700",
+            !currentSubscription && mode !== AnalysisMode.ADMIN_KEYS ? "blur-2xl pointer-events-none opacity-50 grayscale" : ""
+          )}>
+            <AnimatePresence key={mode} mode="wait">
+              {mode === AnalysisMode.ADMIN_KEYS ? (
             <motion.div
               key="admin-keys"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -348,25 +356,13 @@ const ArchRender = () => {
               </motion.div>
             ) : (
               <motion.div
-                key={archVizSubTab}
+                key="library"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="flex-1 flex flex-col items-center justify-center text-center p-12"
+                className="flex-1 flex flex-col"
               >
-                <div className="w-24 h-24 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-8">
-                  <Layout size={40} className="text-violet-400" />
-                </div>
-                <h2 className="text-4xl font-display tracking-tighter uppercase mb-4">Módulo em Desenvolvimento</h2>
-                <p className="text-slate-400 font-mono text-sm max-w-md uppercase tracking-widest leading-relaxed">
-                  Nossos engenheiros neurais estão sintetizando este módulo. <br/>
-                  Acesso em breve para assinantes PRO.
-                </p>
-                <div className="mt-12 flex gap-2">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
-                  ))}
-                </div>
+                <Library isAdmin={isAdmin} />
               </motion.div>
             )
           ) : (
@@ -770,9 +766,40 @@ const ArchRender = () => {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>      </main>
+        </AnimatePresence>
+      </div>
+
+      {/* Locked Overlay */}
+      <AnimatePresence>
+        {!currentSubscription && mode !== AnalysisMode.ADMIN_KEYS && (
+          <motion.div 
+            key="locked-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[30] flex flex-col items-center justify-center p-8 text-center bg-black/20 backdrop-blur-xl rounded-[32px] border border-white/5"
+          >
+            <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
+              <Lock size={32} className="text-red-500" />
+            </div>
+            <h3 className="text-2xl font-display tracking-tighter uppercase mb-4">Módulo Bloqueado</h3>
+            <p className="text-slate-400 font-mono text-sm max-w-md uppercase tracking-widest leading-relaxed mb-8">
+              Você não possui uma assinatura ativa para este módulo. <br/>
+              Ative sua chave de acesso para desbloquear todas as funções.
+            </p>
+            <Button 
+              onClick={openKeyModal}
+              className="bg-white text-black hover:bg-slate-200 rounded-xl px-12 py-4 font-bold text-sm"
+            >
+              Ativar Acesso Agora
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  );
+  </main>
+</div>
+);
 };
 
 export default ArchRender;

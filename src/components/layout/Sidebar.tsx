@@ -132,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Tab Bar */}
       <div className="lg:hidden fixed bottom-6 left-6 right-6 z-[100]">
         <div className="bg-[oklch(20%_0.01_250_/_0.6)] backdrop-blur-3xl border border-[oklch(100%_0_0_/_0.1)] rounded-[24px] p-2 flex items-center justify-around shadow-2xl">
-          {menuItems.slice(0, 4).map((item) => {
+          {menuItems.filter(item => item.id !== AnalysisMode.ADMIN_KEYS).map((item) => {
             const isActive = currentMode === item.id;
             return (
               <button

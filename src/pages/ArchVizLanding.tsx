@@ -188,7 +188,7 @@ const ArchVizLanding = () => {
             A Revolução da Apresentação Arquitetônica
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-sans font-bold tracking-tight leading-[1] mb-10 hero-title uppercase">
+          <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-display font-black tracking-tighter leading-[0.9] mb-10 hero-title uppercase">
             O sistema <br />
             perfeito de <br />
             aceleração e <br />
@@ -239,12 +239,12 @@ const ArchVizLanding = () => {
         <div className="marquee-content flex gap-12 md:gap-24 items-center">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="flex items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">Wanx</span>
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">Hunyuan</span>
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">OpenAI</span>
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">Gemini</span>
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">Kling</span>
-              <span className="text-xl md:text-3xl font-sans font-bold whitespace-nowrap tracking-tighter">Claude</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">Wanx</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">Hunyuan</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">OpenAI</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">Gemini</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">Kling</span>
+              <span className="text-xl md:text-3xl font-display font-bold whitespace-nowrap tracking-tighter">Claude</span>
             </div>
           ))}
         </div>
@@ -262,7 +262,7 @@ const ArchVizLanding = () => {
               
               <div className="grid lg:grid-cols-2 gap-16 items-start">
                 <div>
-                  <h2 className="text-5xl md:text-7xl lg:text-[5rem] font-sans font-bold mb-8 leading-[1] tracking-tight">
+                  <h2 className="text-5xl md:text-7xl lg:text-[5rem] font-display font-black mb-8 leading-[0.9] tracking-tighter">
                     Vamos <br />
                     automatizar <br />
                     todos os <br />
@@ -305,7 +305,7 @@ const ArchVizLanding = () => {
       <section id="ferramentas" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 reveal-up">
-            <h2 className="text-4xl md:text-6xl font-sans font-bold mb-6 tracking-tight">O Poder do ArchRender AI</h2>
+            <h2 className="text-4xl md:text-6xl font-display font-black mb-6 tracking-tighter leading-[1]">O Poder do ArchRender AI</h2>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl mx-auto">
               Três ferramentas integradas para transformar seu fluxo de trabalho de dias em segundos.
             </p>
@@ -353,7 +353,7 @@ const ArchVizLanding = () => {
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto reveal-up">
           <div className="glass p-12 md:p-20 rounded-[3rem] text-center border border-white/10">
-            <h2 className="text-3xl md:text-5xl font-sans font-bold mb-16 tracking-tight max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-5xl font-display font-black mb-16 tracking-tighter leading-[1] max-w-3xl mx-auto">
               3 processos que antes tomavam tempo, agora totalmente automatizados
             </h2>
             
@@ -396,7 +396,7 @@ const ArchVizLanding = () => {
               <div className="inline-flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase mb-6 tracking-[0.3em]">
                 <Zap className="w-4 h-4" /> Pipeline de Produção
               </div>
-              <h2 className="text-4xl md:text-7xl font-sans font-bold mb-8 tracking-tight leading-tight">Do Conceito à Entrega Final</h2>
+              <h2 className="text-4xl md:text-7xl font-display font-black mb-8 tracking-tighter leading-[0.9]">Do Conceito à Entrega Final</h2>
               <p className="text-white/40 text-lg md:text-xl leading-relaxed">
                 Nossa IA não apenas gera imagens; ela cuida de todo o fluxo de trabalho do arquiteto moderno.
               </p>
@@ -513,7 +513,7 @@ const ArchVizLanding = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-10 reveal-up">
             <div className="max-w-xl">
-              <h2 className="text-4xl md:text-7xl font-sans font-bold mb-8 tracking-tight">Por que somos diferentes?</h2>
+              <h2 className="text-4xl md:text-7xl font-display font-black mb-8 tracking-tighter leading-[0.9]">Por que somos diferentes?</h2>
               <p className="text-white/40 text-lg md:text-xl leading-relaxed">
                 Não somos apenas mais uma IA. Somos um sistema desenhado para o crescimento do seu escritório.
               </p>
@@ -601,7 +601,7 @@ const ArchVizLanding = () => {
       <section id="depoimentos" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 reveal-up">
-            <h2 className="text-4xl md:text-6xl font-sans font-bold mb-6 tracking-tight">Quem usa, aprova</h2>
+            <h2 className="text-4xl md:text-6xl font-display font-black mb-6 tracking-tighter leading-[1]">Quem usa, aprova</h2>
             <p className="text-white/40 text-lg md:text-xl">Resultados reais de profissionais que transformaram seus escritórios.</p>
           </div>
 
@@ -657,7 +657,7 @@ const ArchVizLanding = () => {
           </div>
           
           <div className="relative z-10">
-            <h2 className="text-4xl md:text-7xl font-sans font-bold mb-8 leading-[1.1] tracking-tight">Pronto para escalar seu escritório?</h2>
+            <h2 className="text-4xl md:text-7xl font-display font-black mb-8 leading-[0.9] tracking-tighter">Pronto para escalar seu escritório?</h2>
             <p className="text-lg md:text-xl text-white/50 mb-12 max-w-2xl mx-auto">
               Junte-se a centenas de arquitetos que já estão usando a IA para vender mais e trabalhar menos.
             </p>
