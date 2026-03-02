@@ -33,7 +33,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
-        display: ['Space Grotesk', 'sans-serif'], // Need to add this font import
+        display: ['Syne', 'sans-serif'],
       },
       backgroundImage: {
         'primary-gradient': 'linear-gradient(135deg, #6D28D9, #4F46E5)',
