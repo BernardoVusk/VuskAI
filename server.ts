@@ -32,6 +32,7 @@ async function startServer() {
   
   // Standard middleware for other routes
   app.use(cors());
+  app.use(express.static('public'));
   app.use((req, res, next) => {
     if (req.originalUrl === '/api/webhook') {
       next();

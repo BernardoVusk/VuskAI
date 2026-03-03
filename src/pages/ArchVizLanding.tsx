@@ -137,7 +137,7 @@ const ArchVizLanding = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center h-16 md:h-20">
           <div className="flex items-center relative h-full w-32 md:w-48">
             <img 
-              src="logo.png" 
+              src="/logo.png" 
               alt="ArchRender AI" 
               className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2 z-10" 
             />
@@ -484,7 +484,7 @@ const ArchVizLanding = () => {
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 h-full relative overflow-hidden border-r border-white/20">
                     <img 
-                      src="plantatecnica.png" 
+                      src="/plantatecnica.png" 
                       alt="Before" 
                       className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -492,7 +492,7 @@ const ArchVizLanding = () => {
                   </div>
                   <div className="w-1/2 h-full relative overflow-hidden">
                     <img 
-                      src="renderprofissional.png" 
+                      src="/renderprofissional.png" 
                       alt="After" 
                       className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -768,7 +768,7 @@ const ArchVizLanding = () => {
       <footer className="py-16 px-6 border-t border-white/5 bg-dark">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center">
-            <img src="logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
+            <img src="/logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
           </div>
           
           <div className="text-white/20 text-[10px] text-center md:text-left font-medium">
