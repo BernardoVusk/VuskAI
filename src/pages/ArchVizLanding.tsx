@@ -188,7 +188,7 @@ const ArchVizLanding = () => {
             A Revolução da Apresentação Arquitetônica
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-display font-black tracking-tight leading-[1] mb-10 hero-title uppercase">
+          <h1 className="text-4xl md:text-6xl lg:text-[4rem] font-display font-black tracking-[-0.03em] leading-[0.95] mb-10 hero-title uppercase">
             O sistema <br />
             perfeito de <br />
             aceleração e <br />
@@ -196,8 +196,10 @@ const ArchVizLanding = () => {
             de projetos
           </h1>
 
-          <div className="text-sm md:text-base font-bold text-white/90 mb-8 hero-sub tracking-[0.2em] flex items-center justify-center gap-3 uppercase">
-            <Ruler className="w-4 h-4 text-white/40" />
+          <div className="text-[10px] md:text-xs font-bold text-white/60 mb-12 hero-sub tracking-[0.3em] flex items-center justify-center gap-3 uppercase">
+            <div className="w-4 h-4 flex items-center justify-center">
+              <Ruler className="w-3.5 h-3.5 opacity-50" />
+            </div>
             Para arquitetos e designers de interiores
           </div>
           
@@ -323,7 +325,7 @@ const ArchVizLanding = () => {
                 title: "Vídeos Cinematográficos",
                 desc: "Crie tours 360°, simulações de drone e construção em lote. Vídeos que impressionam e vendem o projeto antes mesmo da obra.",
                 icon: <Video className="w-5 h-5" />,
-                img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop"
+                video: "/landpagevideo.mp4"
               },
               {
                 title: "Apresentações de Elite",
@@ -340,8 +342,20 @@ const ArchVizLanding = () => {
                 <p className="text-sm text-white/40 leading-relaxed mb-8">
                   {feature.desc}
                 </p>
-                <div className="rounded-2xl overflow-hidden aspect-video">
-                  <img src={feature.img} alt={feature.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+                <div className="rounded-2xl overflow-hidden aspect-video bg-white/5">
+                  {feature.video ? (
+                    <video 
+                      autoPlay 
+                      muted 
+                      loop 
+                      playsInline 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    >
+                      <source src={feature.video} type="video/mp4" />
+                    </video>
+                  ) : (
+                    <img src={feature.img} alt={feature.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+                  )}
                 </div>
               </div>
             ))}
@@ -456,12 +470,15 @@ const ArchVizLanding = () => {
                 </div>
               </div>
               <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop" 
-                  alt="Video Preview" 
+                <video 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline 
                   className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000"
-                  referrerPolicy="no-referrer"
-                />
+                >
+                  <source src="/landpagevideo.mp4" type="video/mp4" />
+                </video>
                 <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-all cursor-pointer">
                   <Play className="w-6 h-6 fill-white" />
                 </div>
