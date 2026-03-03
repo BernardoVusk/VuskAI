@@ -176,7 +176,7 @@ const ArchVizLanding = () => {
           <img 
             src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop" 
             alt="Luxury Interior" 
-            className="w-full h-full object-cover opacity-40 grayscale"
+            className="w-full h-full object-cover opacity-20"
             referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/40 to-dark"></div>
@@ -438,16 +438,16 @@ const ArchVizLanding = () => {
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 h-full relative overflow-hidden border-r border-white/20">
                     <img 
-                      src="https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop" 
+                      src="/plantatecnica.png" 
                       alt="Before" 
-                      className="absolute inset-0 w-full h-full object-cover grayscale opacity-50"
+                      className="absolute inset-0 w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 left-4 glass px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Sketch / Base</div>
                   </div>
                   <div className="w-1/2 h-full relative overflow-hidden">
                     <img 
-                      src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop" 
+                      src="/renderprofissional.png.png" 
                       alt="After" 
                       className="absolute inset-0 w-full h-full object-cover"
                       referrerPolicy="no-referrer"

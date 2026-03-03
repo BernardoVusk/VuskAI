@@ -100,6 +100,34 @@ const parseJSONResponse = (text: string): AnalysisResult => {
 };
 
 /**
+ * Helper to retry API calls on 503/429 errors
+ */
+const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const isRetryable = 
+        error.message?.includes('503') || 
+        error.message?.includes('UNAVAILABLE') || 
+        error.message?.includes('429') || 
+        error.message?.includes('RESOURCE_EXHAUSTED');
+      
+      if (isRetryable && i < maxRetries - 1) {
+        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+        console.warn(`API busy, retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+};
+
+/**
  * Step 1: Structural & Lighting Forensic Analyst (Identity Neutral)
  */
 export const analyzeReferenceImage = async (base64Image: string, mimeType: string = 'image/jpeg'): Promise<AnalysisResult> => {
@@ -168,7 +196,7 @@ export const analyzeReferenceImage = async (base64Image: string, mimeType: strin
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest', 
       contents: {
         parts: [
@@ -176,8 +204,7 @@ export const analyzeReferenceImage = async (base64Image: string, mimeType: strin
           { text: prompt },
         ],
       },
-      // Removed responseSchema to prevent hanging on complex inputs
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -234,7 +261,7 @@ export const analyzeLifestyleImage = async (base64Image: string, mimeType: strin
     }
   `;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest', 
       contents: {
         parts: [
@@ -242,7 +269,7 @@ export const analyzeLifestyleImage = async (base64Image: string, mimeType: strin
           { text: prompt },
         ],
       },
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -292,7 +319,7 @@ export const analyzeCinematicImage = async (base64Image: string, mimeType: strin
     }
   `;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest', 
       contents: {
         parts: [
@@ -300,7 +327,7 @@ export const analyzeCinematicImage = async (base64Image: string, mimeType: strin
           { text: prompt },
         ],
       },
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -331,7 +358,7 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
     }
   `;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest', 
       contents: {
         parts: [
@@ -339,7 +366,7 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
           { text: prompt },
         ],
       },
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -359,7 +386,7 @@ export const analyzeArchitectureImage = async (base64Image: string, mimeType: st
   const ai = getClient();
   const prompt = `ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".`;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest', 
       contents: {
         parts: [
@@ -367,7 +394,7 @@ export const analyzeArchitectureImage = async (base64Image: string, mimeType: st
           { text: prompt },
         ],
       },
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -387,7 +414,7 @@ export const createHookPrompt = async (userIdea: string): Promise<{ imagePrompt:
   const ai = getClient();
   const prompt = `Create raw POV prompts for: "${userIdea}". Return JSON.`;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest',
       contents: { text: prompt },
       config: {
@@ -400,7 +427,7 @@ export const createHookPrompt = async (userIdea: string): Promise<{ imagePrompt:
           },
         },
       }
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -420,10 +447,10 @@ export const refinePrompt = async (originalPrompt: string, instruction: string):
   const ai = getClient();
   const prompt = `Update prompt: "${originalPrompt}" with instruction: "${instruction}". Keep original format. Return ONLY updated string.`;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-flash-latest',
       contents: prompt,
-    });
+    }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
@@ -471,11 +498,11 @@ export const generateIdentityImage = async (base64Ref: string, desc: string, sce
   `;
   
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image', 
       contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Ref } }, { text: prompt }] },
       config: { imageConfig: { aspectRatio: aspect } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");
@@ -502,11 +529,11 @@ export const generateLifestyleImage = async (base64Ref: string, desc: string, sc
     ${SUFFIX}
   `;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Ref } }, { text: prompt }] },
       config: { imageConfig: { aspectRatio: aspect } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");
@@ -539,12 +566,12 @@ export const generateCinematicImage = async (base64Ref: string, desc: string, sc
   `;
   
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Ref } }, { text: prompt }] },
       // FORÇANDO 9:16 PARA VÍDEO VERTICAL
       config: { imageConfig: { aspectRatio: "9:16" } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");
@@ -568,11 +595,11 @@ export const generateMarketplaceImage = async (base64Ref: string, desc: string, 
   }
   const finalPrompt = `${STUDIO_PREFIX}\n${fidelityEnforcement}\n${finalPromptBody}\n${STUDIO_SUFFIX}`;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Ref } }, { text: finalPrompt }] },
       config: { imageConfig: { aspectRatio: aspect } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");
@@ -589,11 +616,11 @@ export const generateArchitectureImage = async (base64Ref: string, desc: string,
   const coreDesc = getCoreDescription(desc);
   const finalPrompt = `${ARCH_PREFIX}\n\n${coreDesc}\n\n**TECHNICAL OVERRIDE:** ${styleText}\n\n${ARCH_SUFFIX}`;
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Ref } }, { text: finalPrompt }] },
       config: { imageConfig: { aspectRatio: aspect } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");
@@ -608,11 +635,11 @@ export const generateRawImage = async (prompt: string, aspect: string): Promise<
   const ai = getClient();
   const finalPrompt = formatOutput(prompt);
   try {
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { text: finalPrompt },
       config: { imageConfig: { aspectRatio: aspect } }
-    });
+    }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     throw new Error("Generation failed: No image data returned.");

@@ -15,7 +15,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-*.local
+
+# Temporarily ignore video to fix commit error
+public/landpagevideo.mp4
 
 # Editor directories and files
 .vscode/*
