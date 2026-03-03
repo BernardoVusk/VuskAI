@@ -135,16 +135,15 @@ const ArchVizLanding = () => {
         className="fixed top-0 left-0 w-full z-50 px-4 md:px-6 py-2 transition-all duration-300 backdrop-blur-md border-b border-white/5"
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center h-16 md:h-20">
-          <div className="flex items-center relative h-full">
+          <div className="flex items-center relative h-full w-32 md:w-48">
             <img 
-              src="/logo.png" 
+              src="logo.png" 
               alt="ArchRender AI" 
-              className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2" 
-              referrerPolicy="no-referrer" 
+              className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2 z-10" 
             />
           </div>
           
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/70 ml-32 md:ml-48">
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/70">
             <a href="#ferramentas" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Ferramentas</a>
             <a href="#pipeline" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Processo</a>
             <a href="#diferenciais" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Diferenciais</a>
@@ -485,19 +484,17 @@ const ArchVizLanding = () => {
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 h-full relative overflow-hidden border-r border-white/20">
                     <img 
-                      src="/plantatecnica.png" 
+                      src="plantatecnica.png" 
                       alt="Before" 
                       className="absolute inset-0 w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 left-4 glass px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Sketch / Base</div>
                   </div>
                   <div className="w-1/2 h-full relative overflow-hidden">
                     <img 
-                      src="/renderprofissional.png.png" 
+                      src="renderprofissional.png" 
                       alt="After" 
                       className="absolute inset-0 w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 right-4 bg-emerald-500 px-3 py-1 rounded-full text-[8px] font-black uppercase text-white tracking-widest">IA Render</div>
                   </div>
@@ -771,7 +768,7 @@ const ArchVizLanding = () => {
       <footer className="py-16 px-6 border-t border-white/5 bg-dark">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center">
-            <img src="/logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
+            <img src="logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
           </div>
           
           <div className="text-white/20 text-[10px] text-center md:text-left font-medium">

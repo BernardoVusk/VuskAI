@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         
         <div className="mb-10 px-4 pt-4">
           <div className="flex items-center gap-3 mb-1">
-            <img src="/logo.png" alt="ArchRender AI" className="h-28 md:h-36 w-auto object-contain" referrerPolicy="no-referrer" />
+            <img src="logo.png" alt="ArchRender AI" className="h-28 md:h-36 w-auto object-contain" />
           </div>
         </div>
 
