@@ -17,7 +17,9 @@ import {
   LogOut,
   Loader2,
   Check,
-  Ruler
+  Ruler,
+  Menu,
+  X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
@@ -27,6 +29,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const ArchVizLanding = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -129,49 +132,95 @@ const ArchVizLanding = () => {
       {/* Header */}
       <header 
         ref={headerRef}
-        className="fixed top-0 left-0 w-full z-50 px-4 md:px-6 py-4 transition-all duration-300 backdrop-blur-md border-b border-white/5"
+        className="fixed top-0 left-0 w-full z-50 px-4 md:px-6 py-2 transition-all duration-300 backdrop-blur-md border-b border-white/5"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center">
-            <span className="font-display text-xl md:text-2xl uppercase font-black tracking-tighter">ArchRender AI</span>
+        <div className="max-w-7xl mx-auto flex justify-between items-center h-16 md:h-20">
+          <div className="flex items-center relative h-full">
+            <img 
+              src="/logo.png" 
+              alt="ArchRender AI" 
+              className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2" 
+              referrerPolicy="no-referrer" 
+            />
           </div>
           
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/70">
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/70 ml-32 md:ml-48">
             <a href="#ferramentas" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Ferramentas</a>
             <a href="#pipeline" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Processo</a>
             <a href="#diferenciais" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Diferenciais</a>
             <a href="#depoimentos" className="hover:text-white transition-colors uppercase tracking-widest text-[10px]">Depoimentos</a>
           </nav>
 
-          <div className="flex items-center gap-4">
-            {user ? (
-              <div className="flex items-center gap-4">
-                <Link 
-                  to="/arch-render" 
-                  className="btn-primary text-[10px] md:text-xs py-2 px-4 md:px-6 uppercase tracking-widest font-bold"
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden sm:flex items-center gap-4">
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <Link 
+                    to="/arch-render" 
+                    className="btn-primary text-[10px] md:text-xs py-2 px-4 md:px-6 uppercase tracking-widest font-bold"
+                  >
+                    Dashboard
+                  </Link>
+                  <button onClick={handleLogout} className="text-white/40 hover:text-white transition-colors">
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setIsAuthOpen(true)}
+                  className="btn-primary flex items-center gap-2 group text-[10px] md:text-sm py-2 md:py-2.5 px-4 md:px-6 uppercase tracking-widest font-bold"
                 >
-                  Dashboard
-                </Link>
-                <button onClick={handleLogout} className="text-white/40 hover:text-white transition-colors">
-                  <LogOut className="w-4 h-4" />
+                  <span>Acesso Ilimitado</span>
+                  <ArrowRight className="w-3 h-3 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsAuthOpen(true)}
-                className="btn-primary flex items-center gap-2 group text-[10px] md:text-sm py-2 md:py-2.5 px-4 md:px-6 uppercase tracking-widest font-bold"
-              >
-                <span className="hidden sm:inline">Acesso Ilimitado</span>
-                <span className="sm:hidden">Assinar</span>
-                <ArrowRight className="w-3 h-3 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            )}
+              )}
+            </div>
+
+            <button 
+              className="lg:hidden p-2 text-white/70 hover:text-white"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-dark/95 backdrop-blur-xl border-b border-white/5 transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="px-6 py-8 flex flex-col gap-6">
+            <a href="#ferramentas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white uppercase tracking-[0.2em] text-xs font-bold">Ferramentas</a>
+            <a href="#pipeline" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white uppercase tracking-[0.2em] text-xs font-bold">Processo</a>
+            <a href="#diferenciais" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white uppercase tracking-[0.2em] text-xs font-bold">Diferenciais</a>
+            <a href="#depoimentos" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white uppercase tracking-[0.2em] text-xs font-bold">Depoimentos</a>
+            <div className="pt-4 border-t border-white/5 flex flex-col gap-4">
+              {user ? (
+                <>
+                  <Link 
+                    to="/arch-render" 
+                    className="btn-primary text-center py-3 uppercase tracking-widest font-bold text-xs"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button onClick={handleLogout} className="text-white/40 hover:text-white text-xs uppercase tracking-widest font-bold py-2">
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => { setIsAuthOpen(true); setIsMobileMenuOpen(false); }}
+                  className="btn-primary py-3 uppercase tracking-widest font-bold text-xs"
+                >
+                  Acesso Ilimitado
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-40 overflow-hidden">
+      <section className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-6 pt-28 md:pt-32 pb-20 md:pb-40 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop" 
@@ -188,36 +237,36 @@ const ArchVizLanding = () => {
             A Revolução da Apresentação Arquitetônica
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-[4rem] font-display font-black tracking-[-0.03em] leading-[0.95] mb-10 hero-title uppercase">
-            O sistema <br />
-            perfeito de <br />
-            aceleração e <br />
-            fechamento <br />
+          <h1 className="text-[1.5rem] sm:text-4xl md:text-6xl lg:text-[4rem] font-display font-black tracking-[-0.03em] leading-[1.1] md:leading-[0.95] mb-6 md:mb-10 hero-title uppercase break-words">
+            O sistema <br className="hidden sm:block" />
+            perfeito de <br className="hidden sm:block" />
+            aceleração e <br className="hidden sm:block" />
+            fechamento <br className="hidden sm:block" />
             de projetos
           </h1>
 
-          <div className="text-[10px] md:text-xs font-bold text-white/60 mb-12 hero-sub tracking-[0.3em] flex items-center justify-center gap-3 uppercase">
+          <div className="text-[8px] md:text-xs font-bold text-white/60 mb-6 md:mb-12 hero-sub tracking-[0.2em] md:tracking-[0.3em] flex items-center justify-center gap-2 md:gap-3 uppercase">
             <div className="w-4 h-4 flex items-center justify-center">
               <Ruler className="w-3.5 h-3.5 opacity-50" />
             </div>
             Para arquitetos e designers de interiores
           </div>
           
-          <p className="text-sm md:text-base text-white/50 max-w-2xl mx-auto mb-12 hero-sub leading-relaxed">
+          <p className="text-[11px] md:text-base text-white/50 max-w-2xl mx-auto mb-8 md:mb-12 hero-sub leading-relaxed px-2 md:px-0">
             O ArchRender AI cuida de toda a parte técnica das suas apresentações para que você foque no que realmente importa: prospectar e faturar.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 hero-cta">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 hero-cta px-4 md:px-0">
             <button 
               onClick={() => handleSubscribe('lifetime')}
               disabled={loadingPlan === 'lifetime'}
-              className="btn-primary text-base md:text-lg px-12 py-5 w-full sm:w-auto text-center uppercase tracking-widest font-black"
+              className="btn-primary text-sm md:text-lg px-8 md:px-12 py-4 md:py-5 w-full sm:w-auto text-center uppercase tracking-widest font-black"
             >
               {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : 'Começar Agora'}
             </button>
             <a 
               href="#pipeline"
-              className="glass px-12 py-5 rounded-full font-black text-base md:text-lg hover:bg-white/10 transition-all w-full sm:w-auto text-center uppercase tracking-widest"
+              className="glass px-8 md:px-12 py-4 md:py-5 rounded-full font-black text-sm md:text-lg hover:bg-white/10 transition-all w-full sm:w-auto text-center uppercase tracking-widest"
             >
               Ver Demonstração
             </a>
@@ -255,7 +304,7 @@ const ArchVizLanding = () => {
       {/* Transformation Section */}
       <section className="py-24 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto reveal-up">
-          <div className="glass p-10 md:p-20 rounded-[3rem] relative overflow-hidden border border-white/10">
+          <div className="glass p-6 sm:p-10 md:p-20 rounded-2xl sm:rounded-[3rem] relative overflow-hidden border border-white/10">
             <div className="relative z-10">
               <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black tracking-[0.3em] uppercase text-white/40 mb-12">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
@@ -264,11 +313,11 @@ const ArchVizLanding = () => {
               
               <div className="grid lg:grid-cols-2 gap-16 items-start">
                 <div>
-                  <h2 className="text-5xl md:text-7xl lg:text-[5rem] font-display font-bold mb-8 leading-[1] tracking-tight">
-                    Vamos <br />
-                    automatizar <br />
-                    todos os <br />
-                    processos <br />
+                  <h2 className="text-3xl sm:text-5xl md:text-7xl lg:text-[5rem] font-display font-bold mb-8 leading-[1.1] md:leading-[1] tracking-tight">
+                    Vamos <br className="hidden sm:block" />
+                    automatizar <br className="hidden sm:block" />
+                    todos os <br className="hidden sm:block" />
+                    processos <br className="hidden sm:block" />
                     de venda
                   </h2>
                 </div>
@@ -313,7 +362,7 @@ const ArchVizLanding = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 title: "Render Ultra Realista",
@@ -325,7 +374,7 @@ const ArchVizLanding = () => {
                 title: "Vídeos Cinematográficos",
                 desc: "Crie tours 360°, simulações de drone e construção em lote. Vídeos que impressionam e vendem o projeto antes mesmo da obra.",
                 icon: <Video className="w-5 h-5" />,
-                video: "/landpagevideo.mp4"
+                video: "https://player.vimeo.com/video/1169908340?autoplay=1&loop=1&muted=1&background=1"
               },
               {
                 title: "Apresentações de Elite",
@@ -334,7 +383,7 @@ const ArchVizLanding = () => {
                 img: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop"
               }
             ].map((feature, i) => (
-              <div key={i} className="bento-card reveal-up group p-8">
+              <div key={i} className="bento-card reveal-up group p-6 sm:p-8">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 mb-8 group-hover:bg-white/10 transition-colors">
                   {feature.icon}
                 </div>
@@ -342,17 +391,15 @@ const ArchVizLanding = () => {
                 <p className="text-sm text-white/40 leading-relaxed mb-8">
                   {feature.desc}
                 </p>
-                <div className="rounded-2xl overflow-hidden aspect-video bg-white/5">
+                <div className="rounded-2xl overflow-hidden aspect-video bg-white/5 relative">
                   {feature.video ? (
-                    <video 
-                      autoPlay 
-                      muted 
-                      loop 
-                      playsInline 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    >
-                      <source src={feature.video} type="video/mp4" />
-                    </video>
+                    <iframe
+                      src={feature.video}
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none scale-[3.5]"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
                   ) : (
                     <img src={feature.img} alt={feature.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                   )}
@@ -364,24 +411,24 @@ const ArchVizLanding = () => {
       </section>
 
       {/* Automation Summary */}
-      <section className="py-24 px-6">
+      <section className="py-16 md:py-24 px-6">
         <div className="max-w-5xl mx-auto reveal-up">
-          <div className="glass p-12 md:p-20 rounded-[3rem] text-center border border-white/10">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-16 tracking-tight max-w-3xl mx-auto">
+          <div className="glass p-8 sm:p-12 md:p-20 rounded-2xl sm:rounded-[3rem] text-center border border-white/10">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold mb-12 md:mb-16 tracking-tight max-w-3xl mx-auto">
               3 processos que antes tomavam tempo, agora totalmente automatizados
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12 md:mb-16">
               {[
                 { label: "Gere Imagens", sub: "Ultra realismo em segundos", num: "01" },
                 { label: "Gere Vídeos", sub: "Tours cinematográficos", num: "02" },
                 { label: "Apresentações", sub: "Slides de elite automáticos", num: "03" }
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white/40 mb-6">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white/40 mb-4 md:mb-6">
                     {item.num}
                   </div>
-                  <h4 className="text-xl font-sans font-bold mb-2">{item.label}</h4>
+                  <h4 className="text-lg md:text-xl font-sans font-bold mb-2">{item.label}</h4>
                   <p className="text-[10px] text-white/20 uppercase tracking-widest font-black">{item.sub}</p>
                 </div>
               ))}
@@ -405,13 +452,13 @@ const ArchVizLanding = () => {
       {/* Creation Pipeline Showcase */}
       <section id="pipeline" className="py-24 px-6 bg-white/[0.01] border-y border-white/5">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20 reveal-up">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-20 reveal-up">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase mb-6 tracking-[0.3em]">
                 <Zap className="w-4 h-4" /> Pipeline de Produção
               </div>
-              <h2 className="text-4xl md:text-7xl font-display font-bold mb-8 tracking-tight leading-tight">Do Conceito à Entrega Final</h2>
-              <p className="text-white/40 text-lg md:text-xl leading-relaxed">
+              <h2 className="text-3xl sm:text-4xl md:text-7xl font-display font-bold mb-8 tracking-tight leading-tight">Do Conceito à Entrega Final</h2>
+              <p className="text-white/40 text-base md:text-xl leading-relaxed">
                 Nossa IA não apenas gera imagens; ela cuida de todo o fluxo de trabalho do arquiteto moderno.
               </p>
             </div>
@@ -470,15 +517,13 @@ const ArchVizLanding = () => {
                 </div>
               </div>
               <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
-                <video 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline 
-                  className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000"
-                >
-                  <source src="/landpagevideo.mp4" type="video/mp4" />
-                </video>
+                <iframe
+                  src="https://player.vimeo.com/video/1169908340?autoplay=1&loop=1&muted=1&background=1"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none scale-[2.2] opacity-60"
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
                 <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-all cursor-pointer">
                   <Play className="w-6 h-6 fill-white" />
                 </div>
@@ -516,7 +561,7 @@ const ArchVizLanding = () => {
                     <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1000&auto=format&fit=crop" alt="Slide 2" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                   <div className="flex-1 rounded-xl bg-white/5 border border-white/5 overflow-hidden opacity-50">
-                    <img src="https://images.unsplash.com/photo-1617806118233-18e16737a2c1?q=80&w=1000&auto=format&fit=crop" alt="Slide 3" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src="https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?q=80&w=1000&auto=format&fit=crop" alt="Slide 3" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                 </div>
               </div>
@@ -526,12 +571,12 @@ const ArchVizLanding = () => {
       </section>
 
       {/* Differentiators (Bento Grid) */}
-      <section id="diferenciais" className="py-32 px-6 bg-white/[0.01]">
+      <section id="diferenciais" className="py-20 md:py-32 px-6 bg-white/[0.01]">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-10 reveal-up">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-10 reveal-up">
             <div className="max-w-xl">
-              <h2 className="text-4xl md:text-7xl font-display font-bold mb-8 tracking-tight">Por que somos diferentes?</h2>
-              <p className="text-white/40 text-lg md:text-xl leading-relaxed">
+              <h2 className="text-3xl sm:text-4xl md:text-7xl font-display font-bold mb-6 md:mb-8 tracking-tight">Por que somos diferentes?</h2>
+              <p className="text-white/40 text-base md:text-xl leading-relaxed">
                 Não somos apenas mais uma IA. Somos um sistema desenhado para o crescimento do seu escritório.
               </p>
             </div>
@@ -543,49 +588,49 @@ const ArchVizLanding = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Large Card */}
-            <div className="md:col-span-8 bento-card reveal-up flex flex-col md:flex-row gap-10 items-center overflow-hidden p-10 md:p-12">
+            <div className="md:col-span-8 bento-card reveal-up flex flex-col md:flex-row gap-8 md:gap-10 items-center overflow-hidden p-6 sm:p-10 md:p-12">
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 text-[8px] font-black text-white/30 uppercase mb-6 tracking-[0.3em]">
+                <div className="inline-flex items-center gap-2 text-[8px] font-black text-white/30 uppercase mb-4 md:mb-6 tracking-[0.3em]">
                   <Infinity className="w-3 h-3" /> Uso Ilimitado
                 </div>
-                <h3 className="text-2xl md:text-4xl font-sans font-bold mb-6 tracking-tight">🚀 Sem Tokens, Sem Limites</h3>
+                <h3 className="text-xl sm:text-2xl md:text-4xl font-sans font-bold mb-4 md:mb-6 tracking-tight">🚀 Sem Tokens, Sem Limites</h3>
                 <p className="text-white/40 text-sm leading-relaxed">
                   Esqueça a preocupação com créditos. Use nossa ferramenta de forma ilimitada. Errou? Refaça em segundos sem custo adicional.
                 </p>
               </div>
-              <div className="w-full md:w-1/2 h-64 rounded-2xl bg-white/5 flex flex-col items-center justify-center relative overflow-hidden p-8 border border-white/5">
-                <div className="text-[8px] font-black text-white/20 mb-4 uppercase tracking-[0.4em]">Gerações Hoje</div>
-                <div className="text-7xl font-sans font-bold text-white">∞</div>
-                <div className="mt-8 flex gap-1.5">
+              <div className="w-full md:w-1/2 h-48 sm:h-64 rounded-2xl bg-white/5 flex flex-col items-center justify-center relative overflow-hidden p-6 sm:p-8 border border-white/5">
+                <div className="text-[8px] font-black text-white/20 mb-2 md:mb-4 uppercase tracking-[0.4em]">Gerações Hoje</div>
+                <div className="text-5xl sm:text-7xl font-sans font-bold text-white">∞</div>
+                <div className="mt-4 md:mt-8 flex gap-1.5">
                   {[1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="w-8 h-1 rounded-full bg-emerald-500/20"></div>
+                    <div key={i} className="w-6 sm:w-8 h-1 rounded-full bg-emerald-500/20"></div>
                   ))}
                 </div>
               </div>
             </div>
 
             {/* Small Card */}
-            <div className="md:col-span-4 bento-card reveal-up flex flex-col justify-between p-10 md:p-12">
+            <div className="md:col-span-4 bento-card reveal-up flex flex-col justify-between p-6 sm:p-10 md:p-12">
               <div>
-                <h3 className="text-2xl font-sans font-bold mb-4 tracking-tight">💎 Preço Acessível</h3>
+                <h3 className="text-xl sm:text-2xl font-sans font-bold mb-4 tracking-tight">💎 Preço Acessível</h3>
                 <p className="text-white/40 text-sm leading-relaxed">
                   Tecnologia de ponta com o melhor custo-benefício do mercado brasileiro.
                 </p>
               </div>
-              <div className="mt-8">
+              <div className="mt-6 md:mt-8">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-[8px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-widest">Oferta Limitada</span>
                   <span className="text-sm text-white/20 line-through font-bold">R$ 97</span>
                 </div>
-                <div className="text-5xl font-sans font-bold text-white tracking-tighter">
+                <div className="text-4xl sm:text-5xl font-sans font-bold text-white tracking-tighter">
                   R$ 41<span className="text-sm text-white/20 font-sans tracking-normal">/mês</span>
                 </div>
               </div>
             </div>
 
             {/* Small Card */}
-            <div className="md:col-span-4 bento-card reveal-up p-10 md:p-12">
-              <h3 className="text-2xl font-sans font-bold mb-4 tracking-tight">🧠 Análise Inteligente</h3>
+            <div className="md:col-span-4 bento-card reveal-up p-6 sm:p-10 md:p-12">
+              <h3 className="text-xl sm:text-2xl font-sans font-bold mb-4 tracking-tight">🧠 Análise Inteligente</h3>
               <p className="text-white/40 text-sm leading-relaxed">
                 Nossa IA analisa qualquer ângulo ou iluminação automaticamente. Sem necessidade de prompts complexos.
               </p>
@@ -604,8 +649,8 @@ const ArchVizLanding = () => {
             </div>
 
             {/* Small Card */}
-            <div className="md:col-span-4 bento-card reveal-up p-10 md:p-12">
-              <h3 className="text-2xl font-sans font-bold mb-4 tracking-tight">🎉 Prompts Personalizáveis</h3>
+            <div className="md:col-span-4 bento-card reveal-up p-6 sm:p-10 md:p-12">
+              <h3 className="text-xl sm:text-2xl font-sans font-bold mb-4 tracking-tight">🎉 Prompts Personalizáveis</h3>
               <p className="text-white/40 text-sm leading-relaxed">
                 Enviamos o prompt de criação para você. Tenha controle total, crie variações e use em outras ferramentas se desejar.
               </p>
@@ -615,14 +660,14 @@ const ArchVizLanding = () => {
       </section>
 
       {/* Testimonials */}
-      <section id="depoimentos" className="py-24 px-6">
+      <section id="depoimentos" className="py-16 md:py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 reveal-up">
-            <h2 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight">Quem usa, aprova</h2>
-            <p className="text-white/40 text-lg md:text-xl">Resultados reais de profissionais que transformaram seus escritórios.</p>
+          <div className="text-center mb-16 md:mb-20 reveal-up">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight">Quem usa, aprova</h2>
+            <p className="text-white/40 text-base md:text-xl">Resultados reais de profissionais que transformaram seus escritórios.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 name: "Mariana Silva",
@@ -643,7 +688,7 @@ const ArchVizLanding = () => {
                 img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop"
               }
             ].map((item, i) => (
-              <div key={i} className="bento-card reveal-up p-10">
+              <div key={i} className="bento-card reveal-up p-6 sm:p-10">
                 <div className="flex gap-1 mb-8">
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
                 </div>
@@ -662,8 +707,8 @@ const ArchVizLanding = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto glass rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden reveal-up">
+      <section className="py-16 md:py-24 px-6">
+        <div className="max-w-5xl mx-auto glass rounded-2xl sm:rounded-[3rem] p-8 sm:p-12 md:p-24 text-center relative overflow-hidden reveal-up">
           <div className="absolute inset-0 z-0 opacity-10">
             <img 
               src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
@@ -674,8 +719,8 @@ const ArchVizLanding = () => {
           </div>
           
           <div className="relative z-10">
-            <h2 className="text-4xl md:text-7xl font-display font-bold mb-8 leading-[1.1] tracking-tight">Pronto para escalar seu escritório?</h2>
-            <p className="text-lg md:text-xl text-white/50 mb-12 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl md:text-7xl font-display font-bold mb-8 leading-[1.1] tracking-tight">Pronto para escalar seu escritório?</h2>
+            <p className="text-base md:text-xl text-white/50 mb-12 max-w-2xl mx-auto">
               Junte-se a centenas de arquitetos que já estão usando a IA para vender mais e trabalhar menos.
             </p>
             
@@ -707,10 +752,10 @@ const ArchVizLanding = () => {
             <button 
               onClick={() => handleSubscribe('lifetime')}
               disabled={loadingPlan === 'lifetime'}
-              className="btn-primary text-lg md:text-2xl px-12 py-6 group inline-flex items-center justify-center font-bold tracking-tight"
+              className="btn-primary text-base sm:text-lg md:text-2xl px-8 sm:px-12 py-4 sm:py-6 group inline-flex items-center justify-center font-bold tracking-tight w-full sm:w-auto"
             >
               {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : 'Quero Acesso Ilimitado Agora'}
-              <ChevronRight className="inline-block ml-3 group-hover:translate-x-2 transition-transform w-6 h-6 md:w-8 md:h-8" />
+              <ChevronRight className="inline-block ml-3 group-hover:translate-x-2 transition-transform w-5 h-5 md:w-8 md:h-8" />
             </button>
 
             <div className="mt-10 text-[8px] md:text-[10px] text-white/20 flex flex-wrap items-center justify-center gap-6 font-black uppercase tracking-[0.2em]">
@@ -726,7 +771,7 @@ const ArchVizLanding = () => {
       <footer className="py-16 px-6 border-t border-white/5 bg-dark">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center">
-            <span className="font-sans text-xl md:text-2xl font-bold tracking-tight">ArchRender AI</span>
+            <img src="/logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
           </div>
           
           <div className="text-white/20 text-[10px] text-center md:text-left font-medium">

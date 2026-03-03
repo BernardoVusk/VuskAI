@@ -102,22 +102,30 @@ const parseJSONResponse = (text: string): AnalysisResult => {
 /**
  * Helper to retry API calls on 503/429 errors
  */
-const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
+const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 5): Promise<T> => {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error: any) {
       lastError = error;
+      const errorStr = JSON.stringify(error).toUpperCase();
+      const message = (error.message || "").toUpperCase();
+      
       const isRetryable = 
-        error.message?.includes('503') || 
-        error.message?.includes('UNAVAILABLE') || 
-        error.message?.includes('429') || 
-        error.message?.includes('RESOURCE_EXHAUSTED');
+        message.includes('503') || 
+        message.includes('UNAVAILABLE') || 
+        message.includes('429') || 
+        message.includes('RESOURCE_EXHAUSTED') ||
+        errorStr.includes('503') ||
+        errorStr.includes('UNAVAILABLE') ||
+        error.status === 'UNAVAILABLE' ||
+        error.code === 503;
       
       if (isRetryable && i < maxRetries - 1) {
+        // Exponential backoff: 1s, 2s, 4s, 8s...
         const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-        console.warn(`API busy, retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
+        console.warn(`Google API is busy (503/429). Retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -197,7 +205,7 @@ export const analyzeReferenceImage = async (base64Image: string, mimeType: strin
 
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -262,7 +270,7 @@ export const analyzeLifestyleImage = async (base64Image: string, mimeType: strin
   `;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -320,7 +328,7 @@ export const analyzeCinematicImage = async (base64Image: string, mimeType: strin
   `;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -359,7 +367,7 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
   `;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -387,7 +395,7 @@ export const analyzeArchitectureImage = async (base64Image: string, mimeType: st
   const prompt = `ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".`;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
@@ -415,7 +423,7 @@ export const createHookPrompt = async (userIdea: string): Promise<{ imagePrompt:
   const prompt = `Create raw POV prompts for: "${userIdea}". Return JSON.`;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3-flash-preview',
       contents: { text: prompt },
       config: {
         responseMimeType: 'application/json',
@@ -448,7 +456,7 @@ export const refinePrompt = async (originalPrompt: string, instruction: string):
   const prompt = `Update prompt: "${originalPrompt}" with instruction: "${instruction}". Keep original format. Return ONLY updated string.`;
   try {
     const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     }));
 

@@ -184,6 +184,9 @@ const ArchRender = () => {
 
       {/* Mobile Navigation */}
       <div className="lg:hidden">
+        <div className="fixed top-0 left-0 right-0 h-20 bg-[#020204]/80 backdrop-blur-xl border-b border-white/5 z-[60] flex items-center px-6">
+          <img src="/logo.png" alt="ArchRender AI" className="h-16 w-auto" referrerPolicy="no-referrer" />
+        </div>
         <Sidebar 
           currentMode={mode}
           onModeChange={handleModeChange}
@@ -234,7 +237,7 @@ const ArchRender = () => {
 
       {/* Main Content Area */}
       <main className={cn(
-        "flex-1 p-4 md:p-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8",
+        "flex-1 p-4 md:p-8 pt-24 md:pt-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8",
         mode === AnalysisMode.ARCHITECTURE ? "lg:ml-[480px]" : "lg:ml-[280px]"
       )}>
         
@@ -246,6 +249,7 @@ const ArchRender = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full md:w-auto"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
@@ -254,7 +258,7 @@ const ArchRender = () => {
               </div>
             </div>
             
-            <h1 className="text-fluid-6xl md:text-fluid-8xl font-display tracking-tighter leading-none">
+            <h1 className="text-4xl sm:text-5xl md:text-fluid-8xl font-display tracking-tighter leading-none break-words">
               {mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' 
                 ? archVizSubTab.charAt(0).toUpperCase() + archVizSubTab.slice(1)
                 : mode.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
@@ -388,7 +392,7 @@ const ArchRender = () => {
                     <div className="absolute inset-0 bg-grid-white/[0.01] bg-[length:30px_30px]" />
                     
                     {/* Panel Header */}
-                    <div className="relative flex items-center justify-between p-6 border-b border-white/5 z-20">
+                    <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-white/5 z-20">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
                           <Scan size={16} className="text-slate-300" />
@@ -474,11 +478,11 @@ const ArchRender = () => {
                     </div>
 
                     {/* Action Button Area */}
-                    <div className="p-6 pt-2">
+                    <div className="p-4 sm:p-6 pt-2">
                       <Button 
                         variant="custom"
                         className={cn(
-                          "w-full h-16 rounded-2xl text-sm font-semibold transition-all duration-500 active:scale-[0.98]",
+                          "w-full h-14 sm:h-16 rounded-2xl text-sm font-semibold transition-all duration-500 active:scale-[0.98]",
                           !image || status === AppStatus.ANALYZING 
                             ? "bg-white/5 text-slate-500 border border-white/5" 
                             : "bg-white text-black hover:bg-slate-200 shadow-xl"
@@ -518,7 +522,7 @@ const ArchRender = () => {
                     <div className="absolute inset-0 bg-grid-white/[0.01] bg-[length:30px_30px]" />
 
                     {/* Panel Header */}
-                    <div className="relative flex items-center justify-between p-6 border-b border-white/5 z-20">
+                    <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-white/5 z-20">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
                           <Cpu size={16} className="text-slate-300" />
@@ -527,7 +531,7 @@ const ArchRender = () => {
                           <div className="text-xs font-semibold text-white">Resultado da IA</div>
                         </div>
                       </div>
-                      <Badge variant="outline" className="border-white/10 text-slate-300 bg-white/5 px-3 py-1 text-[10px] font-medium">
+                      <Badge variant="outline" className="border-white/10 text-slate-300 bg-white/5 px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-medium">
                         {status === AppStatus.ANALYZING ? 'ANALISANDO...' : 
                          status === AppStatus.GENERATING ? 'GERANDO...' :
                          status === AppStatus.COMPLETE ? 'CONCLUÍDO' :
@@ -537,7 +541,7 @@ const ArchRender = () => {
                     </div>
 
                     {/* Output Content */}
-                    <div className="flex-1 p-8 relative overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-4 sm:p-8 relative overflow-y-auto custom-scrollbar">
                       <AnimatePresence mode="wait">
                         {error ? (
                           <motion.div 
@@ -684,22 +688,22 @@ const ArchRender = () => {
                                 </div>
 
                                 {/* Refinement UI */}
-                                <div className="mt-6 p-6 rounded-2xl bg-white/5 border border-white/10">
+                                <div className="mt-6 p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10">
                                   <div className="text-xs font-semibold text-slate-300 mb-4">Refinar Resultado</div>
-                                  <div className="flex gap-3">
+                                  <div className="flex flex-col sm:flex-row gap-3">
                                     <input
                                       type="text"
                                       value={refinementText}
                                       onChange={(e) => setRefinementText(e.target.value)}
                                       onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
-                                      placeholder="Ex: Mude a iluminação para entardecer..."
+                                      placeholder="Ex: Mude a iluminação..."
                                       className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/30 transition-all"
                                       disabled={isRefining}
                                     />
                                     <Button 
                                       onClick={handleRefine}
                                       disabled={!refinementText.trim() || isRefining}
-                                      className="bg-white text-black hover:bg-slate-200 rounded-xl px-6"
+                                      className="bg-white text-black hover:bg-slate-200 rounded-xl px-6 h-12 sm:h-auto"
                                     >
                                       {isRefining ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
                                     </Button>

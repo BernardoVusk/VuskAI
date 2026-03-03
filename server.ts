@@ -98,6 +98,13 @@ async function startServer() {
           },
         ],
         mode: 'subscription',
+        subscription_data: {
+          metadata: {
+            tab: 'architecture',
+            plan: plan,
+            userId: userId,
+          }
+        },
         success_url: `${req.headers.origin}/arch-viz?success=true&plan=${plan}`,
         cancel_url: `${req.headers.origin}/arch-viz?canceled=true`,
         customer_email: email,
@@ -134,79 +141,87 @@ async function startServer() {
     }
 
     // Handle the event
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      const userId = session.client_reference_id;
-      const userEmail = session.customer_details?.email;
-      const metadata = session.metadata || {};
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = session.client_reference_id || session.metadata?.userId;
+          const userEmail = session.customer_details?.email;
+          const metadata = session.metadata || {};
 
-      let targetUserId = userId;
+          let targetUserId = userId;
 
-      // If userId is missing, try to find the user by email in the profiles table
-      if (!targetUserId && userEmail) {
-        console.log(`Searching for user with email: ${userEmail}`);
-        try {
-          const { data: userData, error: userError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', userEmail)
-            .single();
-          
-          if (!userError && userData) {
-            targetUserId = userData.id;
-            console.log(`Found user ID ${targetUserId} for email ${userEmail}`);
-          } else {
-            console.warn(`Could not find profile for email ${userEmail}. Error: ${userError?.message}`);
+          if (!targetUserId && userEmail) {
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', userEmail)
+              .single();
+            if (userData) targetUserId = userData.id;
           }
-        } catch (err) {
-          console.error('Error searching for user by email:', err);
+
+          if (targetUserId) {
+            const tab = (metadata.tab || 'architecture').toLowerCase();
+            const durationDays = parseInt(metadata.duration_days || '30', 10);
+            const now = new Date();
+            const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+            const updates: any = {};
+            const field = `${tab}_expiry`;
+            updates[field] = newExpiryDate.toISOString();
+
+            await supabase.from('profiles').update(updates).eq('id', targetUserId);
+            console.log(`Initial setup: Updated ${field} for user ${targetUserId}`);
+          }
+          break;
         }
-      }
 
-      if (targetUserId) {
-        console.log(`Processing purchase for user ID ${targetUserId}`);
-        try {
-          // Determine which mode to unlock
-          // 1. Check metadata
-          // 2. Check product ID (if we had them)
-          // 3. Default to architecture
-          const modeToUnlock = metadata.tab || 'architecture';
-          
-          // Calculate new expiry date (e.g., 30 days for monthly plan)
-          const durationDays = parseInt(metadata.duration_days || '30', 10);
-          const now = new Date();
-          const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        case 'invoice.paid': {
+          const invoice = event.data.object as any;
+          if (invoice.subscription) {
+            const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+            const userId = subscription.metadata.userId;
+            const tab = (subscription.metadata.tab || 'architecture').toLowerCase();
 
-          const updates: any = {};
-          if (modeToUnlock === 'architecture') {
-            updates.architecture_expiry = newExpiryDate.toISOString();
-          } else if (modeToUnlock === 'marketplace') {
-            updates.marketplace_expiry = newExpiryDate.toISOString();
-          } else if (modeToUnlock === 'identity') {
-            updates.identity_expiry = newExpiryDate.toISOString();
-          } else {
-            // Default fallback
-            updates.architecture_expiry = newExpiryDate.toISOString();
+            if (userId) {
+              const now = new Date();
+              // Extend by 32 days to give a small grace period for the next invoice
+              const newExpiryDate = new Date(now.getTime() + 32 * 24 * 60 * 60 * 1000);
+              
+              const updates: any = {};
+              const field = `${tab}_expiry`;
+              updates[field] = newExpiryDate.toISOString();
+
+              await supabase.from('profiles').update(updates).eq('id', userId);
+              console.log(`Renewal: Updated ${field} for user ${userId}`);
+            }
           }
-
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update(updates)
-            .eq('id', targetUserId);
-
-          if (updateError) {
-            console.error('Error updating user:', updateError);
-            return res.status(500).send('Failed to update user');
-          }
-          console.log(`Updated ${modeToUnlock}_expiry for user ID ${targetUserId}`);
-        } catch (err) {
-          console.error('Error processing webhook logic:', err);
-          return res.status(500).send('Internal Server Error');
+          break;
         }
-      } else {
-        console.warn('Missing client_reference_id and could not find user by email. Cannot activate plan.');
+
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription;
+          const userId = subscription.metadata.userId;
+          const tab = (subscription.metadata.tab || 'architecture').toLowerCase();
+
+          if (userId) {
+            const updates: any = {};
+            const field = `${tab}_expiry`;
+            // Set expiry to past to block access
+            updates[field] = new Date(0).toISOString();
+
+            await supabase.from('profiles').update(updates).eq('id', userId);
+            console.log(`Cancelled: Revoked ${field} for user ${userId}`);
+          }
+          break;
+        }
+
+        default:
+          console.log(`Unhandled event type ${event.type}`);
       }
+    } catch (err: any) {
+      console.error('Error processing webhook event:', err);
+      return res.status(500).send('Internal Server Error');
     }
 
     res.json({ received: true });

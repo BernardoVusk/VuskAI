@@ -53,10 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         
         <div className="mb-10 px-4 pt-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center">
-              <div className="w-4 h-4 bg-black rounded-sm rotate-45" />
-            </div>
-            <span className="text-lg font-display tracking-tight text-white">ArchRender AI</span>
+            <img src="/logo.png" alt="ArchRender AI" className="h-28 md:h-36 w-auto object-contain" referrerPolicy="no-referrer" />
           </div>
         </div>
 

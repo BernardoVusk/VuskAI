@@ -89,6 +89,26 @@ export const useArchRender = () => {
             expiresAt: data.marketplace_expiry,
           };
         }
+
+        // Check Lifestyle
+        if (data.lifestyle_expiry && new Date(data.lifestyle_expiry) > now) {
+          subs[AnalysisMode.LIFESTYLE] = {
+            isActive: true,
+            plan: PlanType.PRO_30_DAYS,
+            startDate: new Date().toISOString(),
+            expiresAt: data.lifestyle_expiry,
+          };
+        }
+
+        // Check Cinematic
+        if (data.cinematic_expiry && new Date(data.cinematic_expiry) > now) {
+          subs[AnalysisMode.CINEMATIC] = {
+            isActive: true,
+            plan: PlanType.PRO_30_DAYS,
+            startDate: new Date().toISOString(),
+            expiresAt: data.cinematic_expiry,
+          };
+        }
       }
 
       // 2. Merge with Local Storage
@@ -331,11 +351,14 @@ export const useArchRender = () => {
           updates.architecture_expiry = expiry;
           updates.identity_expiry = expiry;
           updates.marketplace_expiry = expiry;
-          // Add others if columns exist
+          updates.lifestyle_expiry = expiry;
+          updates.cinematic_expiry = expiry;
         } else {
           if (activatedMode === AnalysisMode.ARCHITECTURE) updates.architecture_expiry = expiry;
           if (activatedMode === AnalysisMode.IDENTITY) updates.identity_expiry = expiry;
           if (activatedMode === AnalysisMode.MARKETPLACE) updates.marketplace_expiry = expiry;
+          if (activatedMode === AnalysisMode.LIFESTYLE) updates.lifestyle_expiry = expiry;
+          if (activatedMode === AnalysisMode.CINEMATIC) updates.cinematic_expiry = expiry;
         }
 
         if (Object.keys(updates).length > 0) {
