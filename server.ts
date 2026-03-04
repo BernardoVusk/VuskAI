@@ -1,47 +1,46 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 dotenv.config();
 
-async function startServer() {
-  const app = express();
-  const PORT = process.env.PORT || 3000;
+const app = express();
 
-  // Initialize Stripe and Supabase
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    // apiVersion: '2024-12-18.acacia', // Let library default to installed version
-  });
+// Initialize Stripe and Supabase
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+  // apiVersion: '2024-12-18.acacia', // Let library default to installed version
+});
 
-  const supabaseUrl = process.env.SUPABASE_URL || 'https://your-project.supabase.co';
-  // WARNING: For the webhook to write to the database bypassing RLS, you MUST use the SERVICE_ROLE_KEY.
-  // The ANON_KEY will likely fail if RLS is enabled.
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'your-service-role-key';
-  
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.warn('WARNING: SUPABASE_SERVICE_ROLE_KEY is missing. Webhook database updates may fail due to RLS policies.');
+const supabaseUrl = process.env.SUPABASE_URL || 'https://your-project.supabase.co';
+// WARNING: For the webhook to write to the database bypassing RLS, you MUST use the SERVICE_ROLE_KEY.
+// The ANON_KEY will likely fail if RLS is enabled.
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'your-service-role-key';
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('WARNING: SUPABASE_SERVICE_ROLE_KEY is missing. Webhook database updates may fail due to RLS policies.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Middleware for raw body parsing (needed for Stripe webhook verification)
+app.use('/api/webhook', express.raw({ type: 'application/json' }));
+
+// Standard middleware for other routes
+app.use(cors());
+app.use(express.static('public'));
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/webhook' || req.originalUrl.includes('/api/webhook')) {
+    next();
+  } else {
+    express.json({ limit: '10mb' })(req, res, next);
   }
+});
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // Middleware for raw body parsing (needed for Stripe webhook verification)
-  app.use('/api/webhook', express.raw({ type: 'application/json' }));
-  
-  // Standard middleware for other routes
-  app.use(cors());
-  app.use(express.static('public'));
-  app.use((req, res, next) => {
-    if (req.originalUrl === '/api/webhook') {
-      next();
-    } else {
-      express.json({ limit: '10mb' })(req, res, next);
-    }
-  });
-
-  // --- API Routes ---
+// --- API Routes ---
   
   // Image Analysis Endpoint (Replacing Netlify function)
   app.post('/api/analyze-image', async (req, res) => {
@@ -128,12 +127,20 @@ async function startServer() {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     let event: Stripe.Event;
+    let body = req.body;
+
+    // Handle raw body in serverless environments (Netlify)
+    if (process.env.NETLIFY && req.body && Buffer.isBuffer(req.body)) {
+      body = req.body;
+    } else if (process.env.NETLIFY && (req as any).rawBody) {
+      body = (req as any).rawBody;
+    }
 
     try {
       if (!sig || !endpointSecret) {
         throw new Error('Missing Stripe signature or webhook secret');
       }
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
     } catch (err: any) {
       console.error(`Webhook Error: ${err.message}`);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -252,24 +259,38 @@ async function startServer() {
       return res.status(500).send('Internal Server Error');
     }
 
-    res.json({ received: true });
-  });
+  res.json({ received: true });
+});
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
+// Vite middleware for development (only if not in Netlify/Production)
+if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
+  const setupVite = async () => {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    // Serve static files in production (if needed, though usually handled by build output)
-    app.use(express.static('dist'));
-  }
+  };
+  setupVite();
+} else {
+  // Serve static files in production
+  app.use(express.static('dist'));
+}
 
+// Export the app for serverless functions
+export default app;
+
+// Only listen if running directly (not as a function)
+const isDirectRun = process.argv[1] && (
+  process.argv[1] === fileURLToPath(import.meta.url) ||
+  process.argv[1].endsWith('server.ts') ||
+  process.argv[1].endsWith('server.js')
+);
+
+if (isDirectRun && !process.env.NETLIFY) {
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
-
-startServer();
