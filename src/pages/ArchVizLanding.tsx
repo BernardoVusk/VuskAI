@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
@@ -6,7 +7,7 @@ import {
   Zap, 
   Video, 
   Layout, 
-  Infinity, 
+  Infinity as InfinityIcon, 
   CheckCircle2, 
   Star,
   ChevronRight,
@@ -24,9 +25,11 @@ import {
 import { Link } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
 import { supabase } from '../lib/supabaseClient';
-import logoImg from '../assets/logo.png';
-import plantaImg from '../assets/plantatecnica.png';
-import renderImg from '../assets/renderprofissional.png';
+
+// Image URLs - Replace these with your hosted image links
+const LOGO_URL = "https://i.imgur.com/JeRxE3T.png"; 
+const BEFORE_IMG_URL = "https://i.imgur.com/EjeHM68.png"; 
+const AFTER_IMG_URL = "https://i.imgur.com/5REtrHc.png"; 
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,8 +38,37 @@ const ArchVizLanding = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [spots, setSpots] = useState(14);
+  const [timeLeft, setTimeLeft] = useState(899); // 14:59
   const headerRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Dynamic spots counter: 14 to 3
+    const spotsInterval = setInterval(() => {
+      setSpots(prev => {
+        if (prev <= 3) return 3;
+        if (Math.random() > 0.6) return prev - 1;
+        return prev;
+      });
+    }, 20000);
+
+    // Countdown timer
+    const timerInterval = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => {
+      clearInterval(spotsInterval);
+      clearInterval(timerInterval);
+    };
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -132,17 +164,37 @@ const ArchVizLanding = () => {
     <div className="min-h-screen bg-dark overflow-x-hidden">
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       
+      {/* Top Announcement Bar */}
+      <div className="fixed top-0 left-0 w-full z-[60] bg-emerald-500/10 backdrop-blur-md border-b border-emerald-500/20 py-2 md:py-3 px-4 h-10 md:h-12 flex items-center">
+        <div className="max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
+          <p className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400 animate-pulse">
+            OFERTA DE LANÇAMENTO: Restam apenas <span className="text-white bg-emerald-500 px-2 py-0.5 rounded mx-1">{spots}</span> vagas com 51% OFF
+          </p>
+          <div className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full border border-white/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></div>
+            <span className="text-[10px] font-mono font-bold text-white tracking-widest">{formatTime(timeLeft)}</span>
+          </div>
+        </div>
+      </div>
+      
       {/* Header */}
       <header 
         ref={headerRef}
-        className="fixed top-0 left-0 w-full z-50 px-4 md:px-6 py-2 transition-all duration-300 backdrop-blur-md border-b border-white/5"
+        className="fixed top-10 md:top-12 left-0 w-full z-50 px-4 md:px-6 py-2 transition-all duration-300 backdrop-blur-md border-b border-white/5"
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center h-16 md:h-20">
           <div className="flex items-center relative h-full w-32 md:w-48">
             <img 
-              src={logoImg} 
+              src={LOGO_URL} 
               alt="ArchRender AI" 
               className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2 z-10" 
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                if (e.currentTarget.parentElement) {
+                  e.currentTarget.parentElement.innerHTML = '<span class="text-xl font-black tracking-tighter text-white">ARCHRENDER<span class="text-emerald-500">AI</span></span>';
+                }
+              }}
             />
           </div>
           
@@ -222,7 +274,7 @@ const ArchVizLanding = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-6 pt-28 md:pt-32 pb-20 md:pb-40 overflow-hidden">
+      <section className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-6 pt-40 md:pt-52 pb-20 md:pb-40 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop" 
@@ -258,20 +310,45 @@ const ArchVizLanding = () => {
             O ArchRender AI cuida de toda a parte técnica das suas apresentações para que você foque no que realmente importa: prospectar e faturar.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 hero-cta px-4 md:px-0">
-            <button 
-              onClick={() => handleSubscribe('lifetime')}
-              disabled={loadingPlan === 'lifetime'}
-              className="btn-primary text-sm md:text-lg px-8 md:px-12 py-4 md:py-5 w-full sm:w-auto text-center uppercase tracking-widest font-black"
-            >
-              {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : 'Começar Agora'}
-            </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 hero-cta px-4 md:px-0 relative">
+            <div className="relative group">
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -top-4 -right-4 z-20 bg-red-600 text-white text-[8px] font-black px-3 py-1 rounded-full shadow-xl shadow-red-600/20 uppercase tracking-widest"
+              >
+                OFERTA LIMITADA -51%
+              </motion.div>
+              <button 
+                onClick={() => handleSubscribe('lifetime')}
+                disabled={loadingPlan === 'lifetime'}
+                className="btn-primary text-sm md:text-lg px-8 md:px-12 py-4 md:py-5 w-full sm:w-auto text-center uppercase tracking-widest font-black flex items-center justify-center gap-3"
+              >
+                {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : (
+                  <>
+                    <span>Começar Agora — R$ 41</span>
+                  </>
+                )}
+              </button>
+            </div>
             <a 
               href="#pipeline"
               className="glass px-8 md:px-12 py-4 md:py-5 rounded-full font-black text-sm md:text-lg hover:bg-white/10 transition-all w-full sm:w-auto text-center uppercase tracking-widest"
             >
               Ver Demonstração
             </a>
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-2 hero-sub">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
+              <span className="flex items-center gap-2 text-emerald-400">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                {94 - (14 - spots)}/100 vagas preenchidas
+              </span>
+              <span className="text-white/20">|</span>
+              <span className="text-white/40">Preço final: <span className="font-mono text-white">R$ 41/mês</span></span>
+            </div>
+            <p className="text-[9px] text-red-500 font-bold uppercase tracking-widest">O preço subirá para R$ 84 em breve</p>
           </div>
         </div>
 
@@ -487,17 +564,19 @@ const ArchVizLanding = () => {
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 h-full relative overflow-hidden border-r border-white/20">
                     <img 
-                      src={plantaImg} 
+                      src={BEFORE_IMG_URL} 
                       alt="Before" 
                       className="absolute inset-0 w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 left-4 glass px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Sketch / Base</div>
                   </div>
                   <div className="w-1/2 h-full relative overflow-hidden">
                     <img 
-                      src={renderImg} 
+                      src={AFTER_IMG_URL} 
                       alt="After" 
                       className="absolute inset-0 w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 right-4 bg-emerald-500 px-3 py-1 rounded-full text-[8px] font-black uppercase text-white tracking-widest">IA Render</div>
                   </div>
@@ -591,7 +670,7 @@ const ArchVizLanding = () => {
             <div className="md:col-span-8 bento-card reveal-up flex flex-col md:flex-row gap-8 md:gap-10 items-center overflow-hidden p-6 sm:p-10 md:p-12">
               <div className="flex-1">
                 <div className="inline-flex items-center gap-2 text-[8px] font-black text-white/30 uppercase mb-4 md:mb-6 tracking-[0.3em]">
-                  <Infinity className="w-3 h-3" /> Uso Ilimitado
+                  <InfinityIcon className="w-3 h-3" /> Uso Ilimitado
                 </div>
                 <h3 className="text-xl sm:text-2xl md:text-4xl font-sans font-bold mb-4 md:mb-6 tracking-tight">🚀 Sem Tokens, Sem Limites</h3>
                 <p className="text-white/40 text-sm leading-relaxed">
@@ -610,21 +689,24 @@ const ArchVizLanding = () => {
             </div>
 
             {/* Small Card */}
-            <div className="md:col-span-4 bento-card reveal-up flex flex-col justify-between p-6 sm:p-10 md:p-12">
+            <div className="md:col-span-4 bento-card reveal-up flex flex-col justify-between p-6 sm:p-10 md:p-12 border-emerald-500/20">
               <div>
-                <h3 className="text-xl sm:text-2xl font-sans font-bold mb-4 tracking-tight">💎 Preço Acessível</h3>
+                <h3 className="text-xl sm:text-2xl font-sans font-bold mb-4 tracking-tight flex items-center gap-3">
+                  <span className="text-2xl">💎</span> Preço Acessível
+                </h3>
                 <p className="text-white/40 text-sm leading-relaxed">
                   Tecnologia de ponta com o melhor custo-benefício do mercado brasileiro.
                 </p>
               </div>
               <div className="mt-6 md:mt-8">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-[8px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-widest">Oferta Limitada</span>
-                  <span className="text-sm text-white/20 line-through font-bold">R$ 97</span>
+                  <span className="text-[8px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-widest">APENAS {spots} VAGAS</span>
+                  <span className="text-sm text-white/20 line-through font-bold">R$ 83</span>
                 </div>
-                <div className="text-4xl sm:text-5xl font-sans font-bold text-white tracking-tighter">
+                <div className="text-4xl sm:text-5xl font-mono font-bold text-white tracking-tighter">
                   R$ 41<span className="text-sm text-white/20 font-sans tracking-normal">/mês</span>
                 </div>
+                <p className="mt-4 text-[8px] text-white/20 font-black uppercase tracking-widest">Preço garantido para os primeiros 100</p>
               </div>
             </div>
 
@@ -758,6 +840,21 @@ const ArchVizLanding = () => {
               <ChevronRight className="inline-block ml-3 group-hover:translate-x-2 transition-transform w-5 h-5 md:w-8 md:h-8" />
             </button>
 
+            <div className="mt-8 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                <span className="flex items-center gap-2">
+                  <X className="w-3 h-3 text-red-500 rotate-45" /> Restam apenas {spots} das 100 vagas promocionais
+                </span>
+              </div>
+              <div className="w-full max-w-md h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  whileInView={{ width: '86%' }}
+                  className="h-full bg-emerald-500"
+                />
+              </div>
+            </div>
+
             <div className="mt-10 text-[8px] md:text-[10px] text-white/20 flex flex-wrap items-center justify-center gap-6 font-black uppercase tracking-[0.2em]">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Sem fidelidade</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Suporte 24/7</span>
@@ -771,7 +868,18 @@ const ArchVizLanding = () => {
       <footer className="py-16 px-6 border-t border-white/5 bg-dark">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center">
-            <img src={logoImg} alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
+            <img 
+              src={LOGO_URL} 
+              alt="ArchRender AI" 
+              className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" 
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                if (e.currentTarget.parentElement) {
+                  e.currentTarget.parentElement.innerHTML = '<span class="text-xl font-black tracking-tighter text-white">ARCHRENDER<span class="text-emerald-500">AI</span></span>';
+                }
+              }}
+            />
           </div>
           
           <div className="text-white/20 text-[10px] text-center md:text-left font-medium">
