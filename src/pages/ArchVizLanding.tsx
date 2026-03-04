@@ -158,10 +158,6 @@ const ArchVizLanding = () => {
   };
 
   const handleSubscribe = async (plan: string) => {
-    if (!user) {
-      setIsAuthOpen(true);
-      return;
-    }
     setLoadingPlan(plan);
     try {
       // Track InitiateCheckout
@@ -175,8 +171,12 @@ const ArchVizLanding = () => {
       // Use the provided Stripe link
       const stripeLink = 'https://buy.stripe.com/3cIaER80i3iVecD4Ee1gs08';
       const url = new URL(stripeLink);
-      url.searchParams.append('client_reference_id', user.id);
-      if (user.email) url.searchParams.append('prefilled_email', user.email);
+      
+      if (user) {
+        url.searchParams.append('client_reference_id', user.id);
+        if (user.email) url.searchParams.append('prefilled_email', user.email);
+      }
+      
       window.open(url.toString(), '_blank');
     } catch (error) {
       console.error('Error:', error);

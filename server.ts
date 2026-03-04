@@ -15,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
   // apiVersion: '2024-12-18.acacia', // Let library default to installed version
 });
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://your-project.supabase.co';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
 // WARNING: For the webhook to write to the database bypassing RLS, you MUST use the SERVICE_ROLE_KEY.
 // The ANON_KEY will likely fail if RLS is enabled.
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'your-service-role-key';
@@ -156,40 +156,63 @@ app.use((req, res, next) => {
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
-          const userId = session.client_reference_id || session.metadata?.userId;
           const userEmail = session.customer_details?.email;
           const metadata = session.metadata || {};
 
-          let targetUserId = userId;
+          if (!userEmail) {
+            console.error('No email found in checkout session');
+            break;
+          }
 
-          if (!targetUserId && userEmail) {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('email', userEmail)
-              .single();
-            if (userData) targetUserId = userData.id;
+          console.log(`Processing checkout for email: ${userEmail}`);
+
+          // 1. Find or Create User
+          let targetUserId: string | null = null;
+
+          // Check if user exists in profiles (which mirrors auth.users)
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', userEmail)
+            .single();
+
+          if (existingProfile) {
+            targetUserId = existingProfile.id;
+            console.log(`Found existing user: ${targetUserId}`);
+          } else {
+            // Create new user via invitation
+            console.log(`User not found. Inviting: ${userEmail}`);
+            const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(userEmail, {
+              data: { 
+                full_name: session.customer_details?.name || 'Cliente ArchRender',
+                source: 'stripe_checkout'
+              }
+            });
+
+            if (inviteError) {
+              console.error('Error inviting user:', inviteError);
+              // Fallback: maybe they exist in auth but not profiles? 
+              // (Unlikely with trigger, but let's be safe)
+              break;
+            }
+
+            if (inviteData?.user) {
+              targetUserId = inviteData.user.id;
+              console.log(`Invited new user: ${targetUserId}`);
+              
+              // Small delay to ensure the trigger has finished creating the profile
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
 
           if (targetUserId) {
             const tab = (metadata.tab || 'architecture').toLowerCase();
             
-            // Check if this is the yearly product
-            let durationDays = 30;
-            try {
-              const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-              const isYearly = lineItems.data.some(item => 
-                item.price?.product === 'prod_U5PrqVddXPhYpA' || 
-                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U5PrqVddXPhYpA')
-              );
-              if (isYearly) {
-                durationDays = 365;
-              } else {
-                durationDays = parseInt(metadata.duration_days || '30', 10);
-              }
-            } catch (e) {
-              console.error('Error fetching line items:', e);
-              durationDays = parseInt(metadata.duration_days || '30', 10);
+            // Determine duration (Default to 365 for this specific product or check metadata)
+            let durationDays = 365; // Default to 1 year for the main offer
+            
+            if (metadata.duration_days) {
+              durationDays = parseInt(metadata.duration_days, 10);
             }
 
             const now = new Date();
@@ -199,8 +222,16 @@ app.use((req, res, next) => {
             const field = `${tab}_expiry`;
             updates[field] = newExpiryDate.toISOString();
 
-            await supabase.from('profiles').update(updates).eq('id', targetUserId);
-            console.log(`Initial setup: Updated ${field} for user ${targetUserId} with ${durationDays} days`);
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update(updates)
+              .eq('id', targetUserId);
+
+            if (updateError) {
+              console.error(`Error updating profile for ${targetUserId}:`, updateError);
+            } else {
+              console.log(`Successfully updated ${field} for user ${targetUserId} with ${durationDays} days`);
+            }
           }
           break;
         }
