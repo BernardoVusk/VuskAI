@@ -19,6 +19,21 @@ const PixelTracker = () => {
     }
   }, [location]);
 
+  // Handle invitation/recovery hashes globally
+  useEffect(() => {
+    const checkHash = () => {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) {
+        // We need a way to open the modal from here. 
+        // Since the modal state is in ArchVizLanding, we might need a global state or just let the page handle it.
+        // For now, most users land on / anyway.
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
   return null;
 };
 

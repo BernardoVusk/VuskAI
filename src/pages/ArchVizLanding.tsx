@@ -95,7 +95,24 @@ const ArchVizLanding = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription.unsubscribe();
+
+    // Automatically open AuthModal if we detect an invitation or recovery hash
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) {
+        console.log('Invitation/Recovery detected, opening AuthModal');
+        // Small delay to ensure the UI is ready
+        setTimeout(() => setIsAuthOpen(true), 500);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('hashchange', handleHash);
+    };
   }, []);
 
   useEffect(() => {

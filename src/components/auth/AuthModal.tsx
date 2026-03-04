@@ -19,20 +19,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   // Handle password update mode if we have a session but no password set (or from recovery)
   React.useEffect(() => {
-    const handleHash = () => {
+    const checkHash = () => {
       const hash = window.location.hash;
-      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery'))) {
+      console.log('Current hash:', hash);
+      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) {
         setMode('update_password');
-        if (!isOpen) {
-          // We might want to trigger opening the modal here if it's not open
-          // but for now let's assume the user clicks "Login" and sees the update form
-        }
       }
     };
 
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    if (isOpen) {
+      checkHash();
+    }
+    
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
   }, [isOpen]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -72,10 +72,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           password: password
         });
         if (error) throw error;
-        setMessage('Senha atualizada com sucesso! Você já pode acessar o sistema.');
-        setMode('login');
+        
         // Clear hash
         window.history.replaceState(null, '', window.location.pathname);
+        
+        // Success!
+        onClose();
+        alert('Senha definida com sucesso! Sua conta está pronta.');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro. Tente novamente.');
@@ -93,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={mode === 'update_password' ? undefined : onClose}
             className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             {/* Modal */}
@@ -105,12 +108,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               className="relative w-full max-w-md bg-[#0B1221] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {mode !== 'update_password' && (
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
 
               {/* Header */}
               <div className="p-8 pb-0 text-center">
