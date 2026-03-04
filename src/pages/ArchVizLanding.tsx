@@ -146,12 +146,22 @@ const ArchVizLanding = () => {
     }
     setLoadingPlan(plan);
     try {
-      // Use the provided Stripe link
-      const stripeLink = 'https://buy.stripe.com/7sY9AN5Sa2eRecDgmW1gs00';
-      const url = new URL(stripeLink);
-      url.searchParams.append('client_reference_id', user.id);
-      if (user.email) url.searchParams.append('prefilled_email', user.email);
-      window.open(url.toString(), '_blank');
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan,
+          userId: user.id,
+          email: user.email,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Falha ao criar sessão de checkout');
+      
+      const { url } = await response.json();
+      window.location.href = url;
     } catch (error) {
       console.error('Error:', error);
       alert('Erro ao redirecionar para o pagamento.');

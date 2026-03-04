@@ -88,7 +88,7 @@ async function startServer() {
             price_data: {
               currency: 'brl',
               product: 'prod_U4og5gOwkeVi1v',
-              unit_amount: 49700, // Example price for a year, adjust as needed
+              unit_amount: 49200, // R$ 41 * 12 months = R$ 492,00
               recurring: {
                 interval: 'year',
               },
@@ -97,6 +97,7 @@ async function startServer() {
           },
         ],
         mode: 'subscription',
+        allow_promotion_codes: true,
         subscription_data: {
           metadata: {
             tab: 'architecture',
@@ -104,8 +105,8 @@ async function startServer() {
             userId: userId,
           }
         },
-        success_url: `${req.headers.origin}/arch-viz?success=true&plan=${plan}`,
-        cancel_url: `${req.headers.origin}/arch-viz?canceled=true`,
+        success_url: `${req.headers.origin}/?success=true&plan=${plan}`,
+        cancel_url: `${req.headers.origin}/?canceled=true`,
         customer_email: email,
         metadata: {
           tab: 'architecture',
