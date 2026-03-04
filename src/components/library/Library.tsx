@@ -12,7 +12,9 @@ import {
   Save, 
   Loader2,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Play,
+  Video
 } from 'lucide-react';
 import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { ImageComparisonSlider } from '../ui/ImageComparisonSlider';
@@ -33,6 +35,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
   // Admin State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,6 +45,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     name: '',
     prompt_text: '',
     category: 'Interior Luxo',
+    tutorial_url: '',
     image_before: null as File | null,
     image_after: null as File | null,
     image_before_url: '',
@@ -117,6 +121,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         name: form.name,
         prompt_text: form.prompt_text,
         category: form.category,
+        tutorial_url: form.tutorial_url,
         image_before_url: beforeUrl,
         image_after_url: afterUrl
       };
@@ -143,6 +148,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         name: '',
         prompt_text: '',
         category: 'Interior Luxo',
+        tutorial_url: '',
         image_before: null,
         image_after: null,
         image_before_url: '',
@@ -222,6 +228,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   name: '',
                   prompt_text: '',
                   category: 'Interior Luxo',
+                  tutorial_url: '',
                   image_before: null,
                   image_after: null,
                   image_before_url: '',
@@ -280,6 +287,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                               name: item.name,
                               prompt_text: item.prompt_text,
                               category: item.category,
+                              tutorial_url: item.tutorial_url || '',
                               image_before: null,
                               image_after: null,
                               image_before_url: item.image_before_url,
@@ -310,11 +318,11 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       </div>
                     </div>
                     
-                    <div className="mt-4">
+                    <div className="mt-4 flex gap-2">
                       <Button 
                         onClick={() => handleCopyPrompt(item.prompt_text, item.id)}
                         className={cn(
-                          "w-full h-10 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-2",
+                          "flex-1 h-10 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-2",
                           copiedId === item.id 
                             ? "bg-emerald-500 text-white" 
                             : "bg-white text-black hover:bg-slate-200"
@@ -323,6 +331,16 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                         {copiedId === item.id ? <Check size={14} /> : <Copy size={14} />}
                         {copiedId === item.id ? 'Copiado!' : 'Copiar Prompt'}
                       </Button>
+
+                      {item.tutorial_url && (
+                        <button
+                          onClick={() => setActiveVideo(item.tutorial_url || null)}
+                          title="Ver Tutorial"
+                          className="w-10 h-10 rounded-lg border border-white/10 flex items-center justify-center text-white hover:bg-white/5 transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] group/btn"
+                        >
+                          <Play size={14} className="group-hover/btn:scale-110 transition-transform" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </GlassCard>
@@ -443,6 +461,20 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-2">URL do Tutorial (YouTube)</label>
+                  <div className="relative">
+                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                    <input
+                      type="text"
+                      value={form.tutorial_url}
+                      onChange={e => setForm({ ...form, tutorial_url: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+                </div>
+
                 <Button 
                   onClick={handleSave} 
                   disabled={isSaving}
@@ -456,6 +488,44 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Video Modal */}
+      <AnimatePresence>
+        {activeVideo && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setActiveVideo(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+              
+              <iframe
+                src={`https://www.youtube.com/embed/${getYouTubeID(activeVideo)}?autoplay=1`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              ></iframe>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
+};
+
+// Utility to extract YouTube ID
+const getYouTubeID = (url: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
 };

@@ -84,5 +84,6 @@ export interface NeuralLibraryItem {
   image_before_url: string;
   image_after_url: string;
   category: string;
+  tutorial_url?: string;
   created_at: string;
 }

@@ -22,9 +22,10 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
 import { supabase } from '../lib/supabaseClient';
+import * as fbq from '../lib/pixel';
 
 // Image URLs - Replace these with your hosted image links
 const LOGO_URL = "https://i.imgur.com/JeRxE3T.png"; 
@@ -42,6 +43,23 @@ const ArchVizLanding = () => {
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
   const headerRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for success parameter to track Purchase
+    const params = new URLSearchParams(location.search);
+    if (params.get('success') === 'true') {
+      const plan = params.get('plan') || 'lifetime';
+      // Values based on your Stripe configuration
+      const value = 497.00; 
+      fbq.event('Purchase', {
+        value: value,
+        currency: 'BRL',
+        content_name: `ArchRender AI - ${plan}`,
+        content_category: 'Architecture Software'
+      });
+    }
+  }, [location]);
 
   useEffect(() => {
     // Dynamic spots counter: 14 to 3
@@ -146,6 +164,14 @@ const ArchVizLanding = () => {
     }
     setLoadingPlan(plan);
     try {
+      // Track InitiateCheckout
+      fbq.event('InitiateCheckout', {
+        content_name: `ArchRender AI - ${plan}`,
+        content_category: 'Architecture Software',
+        value: 497.00,
+        currency: 'BRL'
+      });
+
       // Use the provided Stripe link
       const stripeLink = 'https://buy.stripe.com/3cIaER80i3iVecD4Ee1gs08';
       const url = new URL(stripeLink);
