@@ -265,12 +265,17 @@ app.use((req, res, next) => {
 // Vite middleware for development (only if not in Netlify/Production)
 if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
   const setupVite = async () => {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+    try {
+      const viteModuleName = 'vite';
+      const { createServer: createViteServer } = await import(viteModuleName);
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn('Vite could not be loaded:', e);
+    }
   };
   setupVite();
 } else {
