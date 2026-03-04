@@ -9,28 +9,47 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<'login' | 'signup' | 'update_password'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+
+  // Handle password update mode if we have a session but no password set (or from recovery)
+  React.useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery'))) {
+        setMode('update_password');
+        if (!isOpen) {
+          // We might want to trigger opening the modal here if it's not open
+          // but for now let's assume the user clicks "Login" and sees the update form
+        }
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [isOpen]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     try {
-      if (isLogin) {
+      if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        // Successful login - close modal or redirect
         onClose();
-      } else {
+      } else if (mode === 'signup') {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -43,13 +62,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         if (error) throw error;
         
         if (data.session) {
-            // Auto-confirmed (or disabled confirmation)
             onClose();
         } else {
-            // Needs confirmation
-            alert('Cadastro realizado! Se o email de confirmação não chegar em instantes, verifique sua caixa de spam.');
-            setIsLogin(true); // Switch to login mode
+            setMessage('Cadastro realizado! Verifique seu e-mail para confirmar.');
+            setMode('login');
         }
+      } else if (mode === 'update_password') {
+        const { error } = await supabase.auth.updateUser({
+          password: password
+        });
+        if (error) throw error;
+        setMessage('Senha atualizada com sucesso! Você já pode acessar o sistema.');
+        setMode('login');
+        // Clear hash
+        window.history.replaceState(null, '', window.location.pathname);
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro. Tente novamente.');
@@ -92,18 +118,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   <User className="w-6 h-6 text-violet-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
+                  {mode === 'login' ? 'Bem-vindo de volta' : mode === 'signup' ? 'Crie sua conta' : 'Defina sua senha'}
                 </h2>
                 <p className="text-slate-400 text-sm">
-                  {isLogin
+                  {mode === 'login'
                     ? 'Entre para acessar seus projetos e renders.'
-                    : 'Comece a gerar renders profissionais hoje.'}
+                    : mode === 'signup'
+                    ? 'Comece a gerar renders profissionais hoje.'
+                    : 'Crie uma senha segura para sua nova conta.'}
                 </p>
               </div>
 
               {/* Form */}
               <form onSubmit={handleAuth} className="p-8 space-y-4">
-                {!isLogin && (
+                {mode === 'signup' && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nome Completo</label>
                     <div className="relative">
@@ -114,29 +142,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Seu nome"
                         className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition-all"
-                        required={!isLogin}
+                        required={mode === 'signup'}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {mode !== 'update_password' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition-all"
+                        required
                       />
                     </div>
                   </div>
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu@email.com"
-                      className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition-all"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Senha</label>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    {mode === 'update_password' ? 'Nova Senha' : 'Senha'}
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
@@ -157,6 +189,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   </div>
                 )}
 
+                {message && (
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium text-center">
+                    {message}
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -166,7 +204,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      {isLogin ? 'Entrar' : 'Criar conta'}
+                      {mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Criar conta' : 'Salvar Senha'}
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -176,12 +214,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               {/* Footer Toggle */}
               <div className="p-4 bg-black/20 border-t border-white/5 text-center">
                 <p className="text-sm text-slate-400">
-                  {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+                  {mode === 'login' ? 'Não tem uma conta?' : mode === 'signup' ? 'Já tem uma conta?' : 'Voltar para o'}
                   <button
-                    onClick={() => setIsLogin(!isLogin)}
+                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
                     className="ml-2 font-bold text-violet-400 hover:text-violet-300 transition-colors"
                   >
-                    {isLogin ? 'Cadastre-se' : 'Faça login'}
+                    {mode === 'login' ? 'Cadastre-se' : 'Login'}
                   </button>
                 </p>
               </div>
