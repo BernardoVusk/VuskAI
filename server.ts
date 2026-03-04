@@ -87,8 +87,8 @@ async function startServer() {
             // For now, I'll use the product ID if possible or keep the dynamic price logic but with 365 days
             price_data: {
               currency: 'brl',
-              product: 'prod_U4og5gOwkeVi1v',
-              unit_amount: 49200, // R$ 41 * 12 months = R$ 492,00
+              product: 'prod_U5PrqVddXPhYpA',
+              unit_amount: 49700, // Example price for a year, adjust as needed
               recurring: {
                 interval: 'year',
               },
@@ -97,7 +97,6 @@ async function startServer() {
           },
         ],
         mode: 'subscription',
-        allow_promotion_codes: true,
         subscription_data: {
           metadata: {
             tab: 'architecture',
@@ -105,8 +104,8 @@ async function startServer() {
             userId: userId,
           }
         },
-        success_url: `${req.headers.origin}/?success=true&plan=${plan}`,
-        cancel_url: `${req.headers.origin}/?canceled=true`,
+        success_url: `${req.headers.origin}/arch-viz?success=true&plan=${plan}`,
+        cancel_url: `${req.headers.origin}/arch-viz?canceled=true`,
         customer_email: email,
         metadata: {
           tab: 'architecture',
@@ -168,8 +167,8 @@ async function startServer() {
             try {
               const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
               const isYearly = lineItems.data.some(item => 
-                item.price?.product === 'prod_U4og5gOwkeVi1v' || 
-                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U4og5gOwkeVi1v')
+                item.price?.product === 'prod_U5PrqVddXPhYpA' || 
+                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U5PrqVddXPhYpA')
               );
               if (isYearly) {
                 durationDays = 365;
@@ -207,8 +206,8 @@ async function startServer() {
               // Determine renewal duration based on subscription items
               let renewalDays = 32; // Default for monthly
               const isYearly = subscription.items.data.some(item => 
-                item.price?.product === 'prod_U4og5gOwkeVi1v' || 
-                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U4og5gOwkeVi1v')
+                item.price?.product === 'prod_U5PrqVddXPhYpA' || 
+                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U5PrqVddXPhYpA')
               );
               
               if (isYearly) {
