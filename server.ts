@@ -84,15 +84,13 @@ async function startServer() {
         payment_method_types: ['card'],
         line_items: [
           {
+            // For now, I'll use the product ID if possible or keep the dynamic price logic but with 365 days
             price_data: {
               currency: 'brl',
-              product_data: {
-                name: productName,
-                description: description,
-              },
-              unit_amount: priceInCents,
+              product: 'prod_U4og5gOwkeVi1v',
+              unit_amount: 49700, // Example price for a year, adjust as needed
               recurring: {
-                interval: 'month',
+                interval: 'year',
               },
             },
             quantity: 1,
@@ -110,10 +108,10 @@ async function startServer() {
         cancel_url: `${req.headers.origin}/arch-viz?canceled=true`,
         customer_email: email,
         metadata: {
-          tab: 'architecture', // Using 'architecture' as the tab/feature name based on previous webhook logic
+          tab: 'architecture',
           plan: plan,
           userId: userId,
-          duration_days: '30' // For webhook logic compatibility
+          duration_days: '365' 
         },
       });
 
@@ -163,7 +161,25 @@ async function startServer() {
 
           if (targetUserId) {
             const tab = (metadata.tab || 'architecture').toLowerCase();
-            const durationDays = parseInt(metadata.duration_days || '30', 10);
+            
+            // Check if this is the yearly product
+            let durationDays = 30;
+            try {
+              const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+              const isYearly = lineItems.data.some(item => 
+                item.price?.product === 'prod_U4og5gOwkeVi1v' || 
+                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U4og5gOwkeVi1v')
+              );
+              if (isYearly) {
+                durationDays = 365;
+              } else {
+                durationDays = parseInt(metadata.duration_days || '30', 10);
+              }
+            } catch (e) {
+              console.error('Error fetching line items:', e);
+              durationDays = parseInt(metadata.duration_days || '30', 10);
+            }
+
             const now = new Date();
             const newExpiryDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
@@ -172,7 +188,7 @@ async function startServer() {
             updates[field] = newExpiryDate.toISOString();
 
             await supabase.from('profiles').update(updates).eq('id', targetUserId);
-            console.log(`Initial setup: Updated ${field} for user ${targetUserId}`);
+            console.log(`Initial setup: Updated ${field} for user ${targetUserId} with ${durationDays} days`);
           }
           break;
         }
@@ -181,20 +197,31 @@ async function startServer() {
           const invoice = event.data.object as any;
           if (invoice.subscription) {
             const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-            const userId = subscription.metadata.userId;
+            const userId = subscription.metadata.userId || subscription.metadata.client_reference_id;
             const tab = (subscription.metadata.tab || 'architecture').toLowerCase();
 
             if (userId) {
               const now = new Date();
-              // Extend by 32 days to give a small grace period for the next invoice
-              const newExpiryDate = new Date(now.getTime() + 32 * 24 * 60 * 60 * 1000);
+              
+              // Determine renewal duration based on subscription items
+              let renewalDays = 32; // Default for monthly
+              const isYearly = subscription.items.data.some(item => 
+                item.price?.product === 'prod_U4og5gOwkeVi1v' || 
+                (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U4og5gOwkeVi1v')
+              );
+              
+              if (isYearly) {
+                renewalDays = 367; // 1 year + grace period
+              }
+
+              const newExpiryDate = new Date(now.getTime() + renewalDays * 24 * 60 * 60 * 1000);
               
               const updates: any = {};
               const field = `${tab}_expiry`;
               updates[field] = newExpiryDate.toISOString();
 
               await supabase.from('profiles').update(updates).eq('id', userId);
-              console.log(`Renewal: Updated ${field} for user ${userId}`);
+              console.log(`Renewal: Updated ${field} for user ${userId} with ${renewalDays} days`);
             }
           }
           break;
@@ -202,7 +229,7 @@ async function startServer() {
 
         case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          const userId = subscription.metadata.userId;
+          const userId = subscription.metadata.userId || subscription.metadata.client_reference_id;
           const tab = (subscription.metadata.tab || 'architecture').toLowerCase();
 
           if (userId) {

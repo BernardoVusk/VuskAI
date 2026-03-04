@@ -24,6 +24,9 @@ import {
 import { Link } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
 import { supabase } from '../lib/supabaseClient';
+import logoImg from '../assets/logo.png';
+import plantaImg from '../assets/plantatecnica.png';
+import renderImg from '../assets/renderprofissional.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -112,7 +115,7 @@ const ArchVizLanding = () => {
     setLoadingPlan(plan);
     try {
       // Use the provided Stripe link
-      const stripeLink = 'https://buy.stripe.com/test_00weV7cW13lAdR67tAcfK04';
+      const stripeLink = 'https://buy.stripe.com/7sY9AN5Sa2eRecDgmW1gs00';
       const url = new URL(stripeLink);
       url.searchParams.append('client_reference_id', user.id);
       if (user.email) url.searchParams.append('prefilled_email', user.email);
@@ -137,7 +140,7 @@ const ArchVizLanding = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center h-16 md:h-20">
           <div className="flex items-center relative h-full w-32 md:w-48">
             <img 
-              src="/logo.png" 
+              src={logoImg} 
               alt="ArchRender AI" 
               className="h-20 md:h-44 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2 z-10" 
             />
@@ -484,7 +487,7 @@ const ArchVizLanding = () => {
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 h-full relative overflow-hidden border-r border-white/20">
                     <img 
-                      src="/plantatecnica.png" 
+                      src={plantaImg} 
                       alt="Before" 
                       className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -492,7 +495,7 @@ const ArchVizLanding = () => {
                   </div>
                   <div className="w-1/2 h-full relative overflow-hidden">
                     <img 
-                      src="/renderprofissional.png" 
+                      src={renderImg} 
                       alt="After" 
                       className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -751,7 +754,7 @@ const ArchVizLanding = () => {
               disabled={loadingPlan === 'lifetime'}
               className="btn-primary text-base sm:text-lg md:text-2xl px-8 sm:px-12 py-4 sm:py-6 group inline-flex items-center justify-center font-bold tracking-tight w-full sm:w-auto"
             >
-              {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : 'Quero Acesso Ilimitado Agora'}
+              {loadingPlan === 'lifetime' ? <Loader2 className="animate-spin" /> : 'Quero Acesso Anual Agora'}
               <ChevronRight className="inline-block ml-3 group-hover:translate-x-2 transition-transform w-5 h-5 md:w-8 md:h-8" />
             </button>
 
@@ -768,7 +771,7 @@ const ArchVizLanding = () => {
       <footer className="py-16 px-6 border-t border-white/5 bg-dark">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center">
-            <img src="/logo.png" alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
+            <img src={logoImg} alt="ArchRender AI" className="h-20 md:h-28 w-auto opacity-50 hover:opacity-100 transition-opacity" />
           </div>
           
           <div className="text-white/20 text-[10px] text-center md:text-left font-medium">
