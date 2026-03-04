@@ -3,10 +3,10 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import path from 'path';
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
+  dotenv.config();
+}
 
 const app = express();
 
@@ -31,7 +31,12 @@ app.use('/api/webhook', express.raw({ type: 'application/json' }));
 
 // Standard middleware for other routes
 app.use(cors());
-app.use(express.static('public'));
+
+// Only serve static files if not in Netlify
+if (!process.env.NETLIFY) {
+  app.use(express.static('public'));
+}
+
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/webhook' || req.originalUrl.includes('/api/webhook')) {
     next();
@@ -287,13 +292,7 @@ if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
 export default app;
 
 // Only listen if running directly (not as a function)
-const isDirectRun = process.argv[1] && (
-  process.argv[1] === fileURLToPath(import.meta.url) ||
-  process.argv[1].endsWith('server.ts') ||
-  process.argv[1].endsWith('server.js')
-);
-
-if (isDirectRun && !process.env.NETLIFY) {
+if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
