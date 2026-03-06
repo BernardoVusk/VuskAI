@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,11 +17,12 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
+import { ComparisonSlider } from '../components/ui/ComparisonSlider';
 import { supabase } from '../lib/supabaseClient';
 import * as fbq from '../lib/pixel';
 
 // Image URLs
-const LOGO_URL = "https://i.imgur.com/JeRxE3T.png"; 
+const LOGO_URL = "https://i.imgur.com/ptDOAO8.png"; 
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,27 +34,60 @@ const ArchVizLanding = () => {
   const [spots, setSpots] = useState(14);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
   const location = useLocation();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Interactive States
   const [sliderPercent, setSliderPercent] = useState(50);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeStyle, setActiveStyle] = useState({
-    id: 'minimal',
-    img: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop',
-    prompt: 'Modern minimalist living room, soft afternoon sunlight, neutral tones, high-end architectural photography, 8k resolution.'
+    id: 'maquete',
+    beforeImg: 'https://i.imgur.com/n3HXpNO.png',
+    afterImg: 'https://i.imgur.com/muSLxSC.png',
+    prompt: 'Maquete arquitetônica detalhada de residência contemporânea, iluminação de estúdio, materiais realistas, base de madeira, foco seletivo, 8k.'
   });
 
   const styles = [
-    { id: 'minimal', label: 'Minimalista', img: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop', prompt: 'Modern minimalist living room, soft afternoon sunlight, neutral tones, high-end architectural photography, 8k resolution.' },
-    { id: 'industrial', label: 'Industrial', img: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?q=80&w=2070&auto=format&fit=crop', prompt: 'Raw industrial loft, exposed concrete walls, large factory windows, leather furniture, moody lighting, cinematic render.' },
-    { id: 'scandinavian', label: 'Nórdico', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=2070&auto=format&fit=crop', prompt: 'Scandinavian cozy interior, light wood textures, white walls, plants, soft diffused lighting, hygge atmosphere.' },
-    { id: 'luxury', label: 'Luxo', img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop', prompt: 'Ultra-luxury penthouse, marble floors, gold accents, night city view, dramatic lighting, photorealistic 8k.' }
+    { 
+      id: 'maquete', 
+      label: 'Maquete', 
+      beforeImg: 'https://i.imgur.com/n3HXpNO.png', 
+      afterImg: 'https://i.imgur.com/muSLxSC.png', 
+      prompt: 'Maquete arquitetônica detalhada de residência contemporânea, iluminação de estúdio, materiais realistas, base de madeira, foco seletivo, 8k.' 
+    },
+    { 
+      id: 'humanizada', 
+      label: 'Planta Baixa Humanizada', 
+      beforeImg: 'https://i.imgur.com/1RXnx6V.png', 
+      afterImg: 'https://i.imgur.com/RRiJicQ.png', 
+      prompt: 'Planta baixa humanizada artística, mobiliário moderno, texturas de piso realistas, sombras suaves, layout funcional, renderização profissional.' 
+    },
+    { 
+      id: '3d', 
+      label: 'Planta Baixa em 3D', 
+      beforeImg: 'https://i.imgur.com/JqsrHaZ.png', 
+      afterImg: 'https://i.imgur.com/G42060i.png', 
+      prompt: 'Planta baixa 3D isométrica, paredes brancas, iluminação natural vinda das janelas, decoração minimalista, visualização arquitetônica clara.' 
+    },
+    { 
+      id: 'tecnico', 
+      label: 'Detalhamento Técnico', 
+      beforeImg: 'https://i.imgur.com/AbYbcc5.png', 
+      afterImg: 'https://i.imgur.com/J0tZQHf.png', 
+      prompt: 'Corte técnico arquitetônico detalhado, hachuras precisas, anotações de materiais, desenho técnico profissional, estilo CAD limpo.' 
+    }
   ];
 
   const slides = [
-    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1600607687940-4e2a09695d51?q=80&w=2070&auto=format&fit=crop"
+    "https://i.imgur.com/bGytswi.png",
+    "https://i.imgur.com/CX0WWqe.png",
+    "https://i.imgur.com/uOyJzCC.png",
+    "https://i.imgur.com/HlLgShR.png",
+    "https://i.imgur.com/SvGznM4.png",
+    "https://i.imgur.com/lStXhng.png",
+    "https://i.imgur.com/OZgQ7gS.png",
+    "https://i.imgur.com/5nWNO8C.png",
+    "https://i.imgur.com/S1KVMXJ.png",
+    "https://i.imgur.com/BjqxaMe.png"
   ];
 
   useEffect(() => {
@@ -220,9 +254,14 @@ const ArchVizLanding = () => {
 
       {/* HEADER */}
       <header id="header" className="fixed top-0 left-0 w-full z-50 transition-all duration-300 py-4 px-6 md:px-12">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between nav-blur rounded-2xl px-4 md:px-6 py-3 border border-border shadow-sm">
-          <a href="/" className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="ArchRender AI" className="h-8 md:h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+        <nav className="max-w-7xl mx-auto flex items-center justify-between nav-blur rounded-2xl px-4 md:px-6 h-16 md:h-20 border border-border shadow-sm relative">
+          <a href="/" className="flex items-center h-full relative w-32 md:w-56">
+            <img 
+              src={LOGO_URL} 
+              alt="ArchRender AI" 
+              className="h-20 md:h-36 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2" 
+              referrerPolicy="no-referrer" 
+            />
           </a>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
@@ -357,21 +396,11 @@ const ArchVizLanding = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Renderização Profissional</h3>
               <p className="text-slate-500 leading-relaxed mb-8">Imagens com texturas e iluminação realistas que parecem fotos reais do projeto finalizado.</p>
-              <div 
-                className="mt-auto rounded-2xl overflow-hidden aspect-video bg-zinc-100 ba-container" 
-                onMouseMove={handleSliderMove}
-                onTouchMove={handleSliderMove}
-              >
-                <div className="ba-before">
-                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" referrerPolicy="no-referrer" alt="Before" />
-                </div>
-                <div className="ba-after" style={{ width: `${sliderPercent}%` }}>
-                  <img src="https://images.unsplash.com/photo-1600607687940-4e2a09695d51?q=80&w=2070&auto=format&fit=crop" referrerPolicy="no-referrer" alt="After" />
-                </div>
-                <div className="ba-handle" style={{ left: `${sliderPercent}%` }}></div>
-                <div className="absolute top-4 left-4 z-10 bg-black/50 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm">Antes</div>
-                <div className="absolute top-4 right-4 z-10 bg-blue-500/80 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm">Depois</div>
-              </div>
+              <ComparisonSlider 
+                beforeImage="https://i.imgur.com/2sV7uN5.png"
+                afterImage="https://i.imgur.com/XlqBtsA.png"
+                className="mt-auto"
+              />
             </div>
 
             {/* Tool 2 */}
@@ -384,9 +413,24 @@ const ArchVizLanding = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Vídeos Cinematográficos</h3>
               <p className="text-slate-500 leading-relaxed mb-8">Crie tours virtuais e animações de revelação em segundos, sem precisar de hardware potente.</p>
-              <div className="mt-auto rounded-2xl overflow-hidden aspect-video bg-black relative group">
-                <video className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" muted loop playsInline poster="https://images.unsplash.com/photo-1600607687644-c7171b42498f?q=80&w=2070&auto=format&fit=crop">
-                  <source src="https://assets.mixkit.co/videos/preview/mixkit-modern-apartment-interior-design-4100-large.mp4" type="video/mp4" />
+              <div 
+                className="mt-auto rounded-2xl overflow-hidden aspect-video bg-black relative group cursor-pointer"
+                onMouseEnter={() => videoRef.current?.play()}
+                onMouseLeave={() => {
+                  if (videoRef.current) {
+                    videoRef.current.pause();
+                    videoRef.current.currentTime = 0;
+                  }
+                }}
+              >
+                <video 
+                  ref={videoRef}
+                  className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" 
+                  muted 
+                  loop 
+                  playsInline
+                >
+                  <source src="https://i.imgur.com/odCjiFh.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl">
@@ -405,7 +449,7 @@ const ArchVizLanding = () => {
                 <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Slides</span>
               </div>
               <h3 className="text-2xl font-bold mb-4">Apresentações de Elite</h3>
-              <p className="text-slate-500 leading-relaxed mb-8">A plataforma monta sua apresentação comercial completa, pronta para ser enviada ao cliente.</p>
+              <p className="text-slate-500 leading-relaxed mb-4">A plataforma monta sua apresentação comercial completa, pronta para ser enviada ao cliente.</p>
               <div className="mt-auto relative group">
                 <div className="rounded-2xl overflow-hidden aspect-video bg-zinc-100 carousel-container">
                   <div className="carousel-track h-full" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
@@ -436,23 +480,16 @@ const ArchVizLanding = () => {
                 </div>
                 <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Biblioteca</span>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Biblioteca de Prompts</h3>
+              <h3 className="text-2xl font-bold mb-4">Biblioteca de Estilos</h3>
               <p className="text-slate-500 leading-relaxed mb-8">Explore estilos infinitos. Clique nos estilos abaixo para ver a mágica acontecer.</p>
               
               <div className="mt-auto relative">
-                <div className="rounded-2xl overflow-hidden aspect-video bg-zinc-100 relative mb-6">
-                  <img src={activeStyle.img} className="w-full h-full object-cover transition-all duration-500" referrerPolicy="no-referrer" alt="Style Preview" />
-                  <div className="prompt-window">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[9px] uppercase tracking-widest text-blue-500 font-bold">Prompt Ativo</span>
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                      </div>
-                    </div>
-                    <p className="italic">"{activeStyle.prompt}"</p>
-                  </div>
+                <div className="mb-6">
+                  <ComparisonSlider 
+                    key={activeStyle.id}
+                    beforeImage={activeStyle.beforeImg}
+                    afterImage={activeStyle.afterImg}
+                  />
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -460,7 +497,7 @@ const ArchVizLanding = () => {
                     <button 
                       key={style.id}
                       className={`style-pill ${activeStyle.id === style.id ? 'active' : ''}`} 
-                      onClick={() => setActiveStyle(style)}
+                      onClick={() => setActiveStyle(style as any)}
                     >
                       {style.label}
                     </button>
@@ -521,31 +558,22 @@ const ArchVizLanding = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-20 section-reveal">
             <h2 className="text-3xl md:text-6xl font-extrabold tracking-tight mb-6">Nossa Biblioteca</h2>
-            <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto">Basta copiar e colar o prompt pronto pra uso de centenas de imagens e vídeos super criativos e exclusivos para arquitetura e design.</p>
+            <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto">Explore centenas de imagens e vídeos super criativos e exclusivos para arquitetura e design.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="image-container aspect-square section-reveal group">
-              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Library 1" />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-xs font-bold uppercase tracking-widest mb-4">Estilo Minimalista Nórdico</p>
-                <button className="bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Copiar Prompt</button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {styles.map((style) => (
+              <div key={style.id} className="section-reveal group">
+                <ComparisonSlider 
+                  beforeImage={style.beforeImg}
+                  afterImage={style.afterImg}
+                  className="aspect-square"
+                />
+                <div className="mt-4 flex flex-col items-center">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3 text-zinc-400">{style.label}</p>
+                </div>
               </div>
-            </div>
-            <div className="image-container aspect-square section-reveal group">
-              <img src="https://images.unsplash.com/photo-1600607687644-c7171b42498f?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Library 2" />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-xs font-bold uppercase tracking-widest mb-4">Industrial Loft Modern</p>
-                <button className="bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Copiar Prompt</button>
-              </div>
-            </div>
-            <div className="image-container aspect-square section-reveal group">
-              <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop" className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Library 3" />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-xs font-bold uppercase tracking-widest mb-4">Luxury Penthouse View</p>
-                <button className="bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest">Copiar Prompt</button>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -630,7 +658,7 @@ const ArchVizLanding = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <img src={LOGO_URL} alt="ArchRender AI" className="h-8 md:h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+                <img src={LOGO_URL} alt="ArchRender AI" className="h-10 md:h-16 w-auto object-contain" referrerPolicy="no-referrer" />
               </div>
               <p className="text-slate-500 max-w-sm leading-relaxed">
                 Acelerando a criatividade arquitetônica através da inteligência artificial. O futuro da visualização começa aqui.
