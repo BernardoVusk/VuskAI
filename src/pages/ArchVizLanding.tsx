@@ -13,7 +13,10 @@ import {
   Loader2,
   Check,
   Menu,
-  X
+  X,
+  Maximize2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
@@ -39,6 +42,7 @@ const ArchVizLanding = () => {
   // Interactive States
   const [sliderPercent, setSliderPercent] = useState(50);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSlideModalOpen, setIsSlideModalOpen] = useState(false);
   const [activeStyle, setActiveStyle] = useState({
     id: 'maquete',
     beforeImg: 'https://i.imgur.com/n3HXpNO.png',
@@ -429,6 +433,8 @@ const ArchVizLanding = () => {
                   muted 
                   loop 
                   playsInline
+                  preload="metadata"
+                  poster="https://i.imgur.com/odCjiFh.jpg"
                 >
                   <source src="https://i.imgur.com/odCjiFh.mp4" type="video/mp4" />
                 </video>
@@ -442,23 +448,37 @@ const ArchVizLanding = () => {
 
             {/* Tool 3 */}
             <div className="card-hover p-8 rounded-[32px] bg-white border border-border section-reveal flex flex-col">
-              <div className="flex items-start justify-between mb-8">
+              <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shadow-sm border border-border">
                   <Presentation className="w-7 h-7 text-black" />
                 </div>
                 <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Slides</span>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Apresentações de Elite</h3>
-              <p className="text-slate-500 leading-relaxed mb-4">A plataforma monta sua apresentação comercial completa, pronta para ser enviada ao cliente.</p>
-              <div className="mt-auto relative group">
-                <div className="rounded-2xl overflow-hidden aspect-video bg-zinc-100 carousel-container">
+              <h3 className="text-2xl font-bold mb-2">Apresentações de Elite</h3>
+              <p className="text-slate-500 leading-relaxed mb-2">A plataforma monta sua apresentação comercial completa, pronta para ser enviada ao cliente.</p>
+              <div className="relative group">
+                <div className="rounded-2xl overflow-hidden aspect-video bg-zinc-100 carousel-container relative">
                   <div className="carousel-track h-full" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                     {slides.map((src, i) => (
                       <div key={i} className="shrink-0 w-full h-full">
-                        <img src={src} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt={`Slide ${i + 1}`} />
+                        <img 
+                          src={src} 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer" 
+                          alt={`Slide ${i + 1}`} 
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </div>
                     ))}
                   </div>
+                  <button 
+                    onClick={() => setIsSlideModalOpen(true)}
+                    className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    title="Ver em tela cheia"
+                  >
+                    <Maximize2 className="w-5 h-5 text-black" />
+                  </button>
                 </div>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                   {slides.map((_, i) => (
@@ -567,7 +587,7 @@ const ArchVizLanding = () => {
                 <ComparisonSlider 
                   beforeImage={style.beforeImg}
                   afterImage={style.afterImg}
-                  className="aspect-square"
+                  className="aspect-square bg-zinc-900"
                 />
                 <div className="mt-4 flex flex-col items-center">
                   <p className="text-xs font-bold uppercase tracking-widest mb-3 text-zinc-400">{style.label}</p>
@@ -651,6 +671,61 @@ const ArchVizLanding = () => {
           </div>
         </div>
       </section>
+
+      {/* SLIDE FULLSCREEN MODAL */}
+      <AnimatePresence>
+        {isSlideModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 md:p-12"
+          >
+            <button 
+              onClick={() => setIsSlideModalOpen(false)}
+              className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-20"
+            >
+              <X className="w-8 h-8" />
+            </button>
+
+            <div className="relative w-full max-w-6xl aspect-video rounded-2xl overflow-hidden shadow-2xl">
+              <img 
+                src={slides[currentSlide]} 
+                className="w-full h-full object-contain" 
+                referrerPolicy="no-referrer" 
+                alt={`Slide ${currentSlide + 1}`} 
+              />
+              
+              {/* Navigation Controls in Modal */}
+              <button 
+                onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-black/50 hover:bg-black/80 rounded-full text-white transition-all"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <button 
+                onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-4 bg-black/50 hover:bg-black/80 rounded-full text-white transition-all"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
+
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+                {slides.map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === i ? 'w-8 bg-blue-500' : 'w-1.5 bg-white/30'}`}
+                  ></div>
+                ))}
+              </div>
+            </div>
+            
+            <p className="text-white/50 mt-8 font-medium tracking-widest uppercase text-xs">
+              Slide {currentSlide + 1} de {slides.length}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* FOOTER */}
       <footer className="pt-32 pb-12 px-6">

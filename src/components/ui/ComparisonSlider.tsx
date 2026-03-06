@@ -27,15 +27,29 @@ export const ComparisonSlider: React.FC<ComparisonSliderProps> = ({
 
   return (
     <div 
-      className={`relative rounded-2xl overflow-hidden aspect-video bg-zinc-100 ba-container cursor-ew-resize ${className}`}
+      className={`relative rounded-2xl overflow-hidden bg-zinc-100 ba-container cursor-ew-resize ${className || 'aspect-video'}`}
       onMouseMove={handleSliderMove}
       onTouchMove={handleSliderMove}
     >
       <div className="ba-before">
-        <img src={afterImage} referrerPolicy="no-referrer" alt="After" className="w-full h-full object-cover" />
+        <img 
+          src={afterImage} 
+          referrerPolicy="no-referrer" 
+          alt="After" 
+          className="w-full h-full object-cover" 
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="ba-after" style={{ clipPath: `inset(0 ${100 - sliderPercent}% 0 0)` }}>
-        <img src={beforeImage} referrerPolicy="no-referrer" alt="Before" className="w-full h-full object-cover" />
+        <img 
+          src={beforeImage} 
+          referrerPolicy="no-referrer" 
+          alt="Before" 
+          className="w-full h-full object-cover" 
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="ba-handle" style={{ left: `${sliderPercent}%` }}></div>
       <div className="absolute top-4 left-4 z-10 bg-black/50 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm">
