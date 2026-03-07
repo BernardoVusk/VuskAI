@@ -195,13 +195,13 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
       {/* Header & Filters */}
       <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
         <div className="flex-1 w-full md:max-w-md relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text"
             placeholder="Buscar prompts ou projetos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
+            className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-sm font-medium"
           />
         </div>
 
@@ -211,10 +211,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "px-4 py-2 rounded-full text-xs font-medium transition-all active:scale-95",
+                "px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95",
                 selectedCategory === cat 
-                  ? "bg-white text-black" 
-                  : "bg-white/5 text-slate-400 hover:bg-white/10"
+                  ? "bg-black text-white shadow-lg" 
+                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"
               )}
             >
               {cat}
@@ -236,10 +236,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 });
                 setIsModalOpen(true);
               }}
-              className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 rounded-full px-6 py-2 flex items-center gap-2 ml-2"
+              className="bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-100 rounded-full px-6 py-2 flex items-center gap-2 ml-2 shadow-sm"
             >
               <Plus size={16} />
-              <span className="text-xs font-semibold">Novo Prompt</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">Novo Prompt</span>
             </Button>
           )}
         </div>
@@ -248,8 +248,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
       {/* Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 text-violet-500 animate-spin mb-4" />
-          <p className="text-slate-500 text-xs font-medium">Carregando Biblioteca...</p>
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Carregando Biblioteca...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -263,7 +263,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4 }}
               >
-                <GlassCard className="group overflow-hidden border-white/5 bg-black/40 backdrop-blur-3xl rounded-[32px] shadow-2xl flex flex-col h-full">
+                <GlassCard className="group overflow-hidden border-slate-200 bg-white rounded-[32px] shadow-xl flex flex-col h-full hover:shadow-2xl transition-all duration-500">
                   {/* Image Comparison */}
                   <div className="aspect-[9/16] relative overflow-hidden">
                     <ImageComparisonSlider
@@ -274,7 +274,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       className="h-full w-full rounded-none border-0"
                     />
                     <div className="absolute top-4 left-4 z-10">
-                      <Badge className="bg-black/60 backdrop-blur-md border-white/10 text-white text-[10px] font-bold">
+                      <Badge className="bg-white/80 backdrop-blur-md border-slate-200 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
                         {item.category}
                       </Badge>
                     </div>
@@ -295,13 +295,13 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                             });
                             setIsModalOpen(true);
                           }}
-                          className="p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors"
+                          className="p-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-lg text-slate-600 hover:text-blue-600 transition-colors"
                         >
                           <Edit size={14} />
                         </button>
                         <button 
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 bg-black/60 backdrop-blur-md border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+                          className="p-2 bg-white/80 backdrop-blur-md border border-red-100 rounded-lg text-red-500 hover:text-red-600 transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -311,9 +311,9 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
 
                   {/* Content */}
                   <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-base font-bold text-white mb-2 tracking-tight line-clamp-1">{item.name}</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2 tracking-tight line-clamp-1 uppercase tracking-widest">{item.name}</h3>
                     <div className="relative flex-1">
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-[10px] text-slate-400 leading-relaxed max-h-[100px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-500 font-medium leading-relaxed max-h-[100px] overflow-y-auto custom-scrollbar">
                         {item.prompt_text}
                       </div>
                     </div>
@@ -322,10 +322,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       <Button 
                         onClick={() => handleCopyPrompt(item.prompt_text, item.id)}
                         className={cn(
-                          "flex-1 h-10 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-2",
+                          "flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2",
                           copiedId === item.id 
                             ? "bg-emerald-500 text-white" 
-                            : "bg-white text-black hover:bg-slate-200"
+                            : "bg-black text-white hover:bg-slate-900"
                         )}
                       >
                         {copiedId === item.id ? <Check size={14} /> : <Copy size={14} />}
@@ -336,7 +336,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                         <button
                           onClick={() => setActiveVideo(item.tutorial_url || null)}
                           title="Ver Tutorial"
-                          className="w-10 h-10 rounded-lg border border-white/10 flex items-center justify-center text-white hover:bg-white/5 transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] group/btn"
+                          className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-all group/btn"
                         >
                           <Play size={14} className="group-hover/btn:scale-110 transition-transform" />
                         </button>
@@ -353,18 +353,18 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
       {/* Admin Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-[32px] p-8 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar"
+              className="w-full max-w-2xl bg-white border border-slate-200 rounded-[32px] p-8 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold tracking-tight">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900 uppercase tracking-widest">
                   {editingItem ? 'Editar Prompt' : 'Novo Prompt Neural'}
                 </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white">
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-900">
                   <X size={20} />
                 </button>
               </div>
@@ -372,10 +372,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 {/* Before Image */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-400 ml-1">Imagem Antes (Original)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Imagem Antes (Original)</label>
                   <div 
                     onClick={() => document.getElementById('before-upload')?.click()}
-                    className="aspect-[9/16] bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-white/20 transition-all overflow-hidden relative group"
+                    className="aspect-[9/16] bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all overflow-hidden relative group"
                   >
                     {form.image_before ? (
                       <img src={URL.createObjectURL(form.image_before)} className="w-full h-full object-cover" />
@@ -383,8 +383,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       <img src={form.image_before_url} className="w-full h-full object-cover" />
                     ) : (
                       <>
-                        <Upload size={24} className="text-slate-600 mb-2" />
-                        <span className="text-[10px] text-slate-600 uppercase font-bold">Upload Antes</span>
+                        <Upload size={24} className="text-slate-300 mb-2" />
+                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Upload Antes</span>
                       </>
                     )}
                     <input 
@@ -399,10 +399,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
 
                 {/* After Image */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-400 ml-1">Imagem Depois (Render)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Imagem Depois (Render)</label>
                   <div 
                     onClick={() => document.getElementById('after-upload')?.click()}
-                    className="aspect-[9/16] bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-white/20 transition-all overflow-hidden relative group"
+                    className="aspect-[9/16] bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all overflow-hidden relative group"
                   >
                     {form.image_after ? (
                       <img src={URL.createObjectURL(form.image_after)} className="w-full h-full object-cover" />
@@ -410,8 +410,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       <img src={form.image_after_url} className="w-full h-full object-cover" />
                     ) : (
                       <>
-                        <Upload size={24} className="text-slate-600 mb-2" />
-                        <span className="text-[10px] text-slate-600 uppercase font-bold">Upload Depois</span>
+                        <Upload size={24} className="text-slate-300 mb-2" />
+                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Upload Depois</span>
                       </>
                     )}
                     <input 
@@ -428,21 +428,21 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-2">Nome do Projeto</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Nome do Projeto</label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
                       placeholder="Ex: Loft Industrial"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-2">Categoria</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Categoria</label>
                     <select
                       value={form.category}
                       onChange={e => setForm({ ...form, category: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
                     >
                       {categories.filter(c => c !== 'Todos').map(c => (
                         <option key={c} value={c}>{c}</option>
@@ -452,24 +452,24 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-2">Prompt Utilizado</label>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Prompt Utilizado</label>
                   <textarea
                     value={form.prompt_text}
                     onChange={e => setForm({ ...form, prompt_text: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 h-32 resize-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 h-32 resize-none font-medium"
                     placeholder="Cole aqui o prompt que gerou o resultado..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-2">URL do Tutorial (YouTube)</label>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">URL do Tutorial (YouTube)</label>
                   <div className="relative">
-                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input
                       type="text"
                       value={form.tutorial_url}
                       onChange={e => setForm({ ...form, tutorial_url: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition-all font-medium"
                       placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </div>
@@ -478,7 +478,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 <Button 
                   onClick={handleSave} 
                   disabled={isSaving}
-                  className="w-full bg-white text-black hover:bg-slate-200 rounded-xl py-4 flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50"
+                  className="w-full bg-black text-white hover:bg-slate-900 rounded-xl py-4 flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50 uppercase tracking-widest"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={16} />}
                   {isSaving ? 'Salvando...' : 'Salvar no Portfólio'}

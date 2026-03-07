@@ -48,17 +48,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-[240px] h-full flex-col border border-[oklch(100%_0_0_/_0.1)] bg-[oklch(20%_0.01_250_/_0.4)] backdrop-blur-3xl p-4 rounded-[32px] shadow-2xl relative overflow-hidden">
+      <div className="hidden lg:flex w-[260px] h-full flex-col border border-slate-200 bg-white/80 backdrop-blur-3xl p-6 rounded-[32px] shadow-2xl relative overflow-hidden">
         {/* Background Glow */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-violet-500/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
         
-        <div className="mb-10 px-4 pt-4">
+        <div className="mb-12 px-2">
           <div className="flex items-center gap-3 mb-1">
-            <img src={logoImg} alt="ArchRender AI" className="h-28 md:h-36 w-auto object-contain" />
+            <img src={logoImg} alt="ArchRender AI" className="h-32 w-auto object-contain" />
           </div>
         </div>
 
-        <div className="flex-1 space-y-2">
+        <div className="mb-6 px-2">
+          <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500">Menu Principal</div>
+        </div>
+
+        <div className="flex-1 space-y-3">
           {menuItems.map((item) => {
             const isLocked = item.id !== AnalysisMode.ADMIN_KEYS && !subscriptions[item.id as AnalysisMode]?.isActive;
             const isActive = currentMode === item.id;
@@ -68,21 +72,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onModeChange(item.id as AnalysisMode)}
                 className={cn(
-                  "w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-500 group relative overflow-hidden active:scale-[0.98]",
+                  "w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden active:scale-[0.98]",
                   isActive 
-                    ? "bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)]" 
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "bg-black text-white shadow-xl" 
+                    : "text-slate-500 hover:text-black hover:bg-slate-50"
                 )}
               >
-                <div className="relative z-10 flex items-center gap-3">
+                <div className="relative z-10 flex items-center gap-4">
                   <item.icon 
                     size={18}
                     className={cn(
                       "transition-transform duration-500 group-hover:scale-110", 
-                      isActive ? "text-black" : "text-slate-500 group-hover:text-violet-400"
+                      isActive ? "text-white" : "text-slate-400 group-hover:text-blue-500"
                     )} 
                   />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
                 </div>
                 
                 {item.id !== AnalysisMode.ADMIN_KEYS && (
@@ -94,8 +98,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className={cn(
                       "relative z-10 p-1 rounded-full transition-all duration-500",
                       isLocked 
-                        ? isActive ? "text-black/30" : "text-slate-600 group-hover:text-red-400" 
-                        : "text-emerald-500/50"
+                        ? isActive ? "text-white/30" : "text-slate-300 group-hover:text-red-500" 
+                        : "text-emerald-500"
                     )}
                   >
                     {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
@@ -105,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active-pill"
-                    className="absolute inset-0 bg-white"
+                    className="absolute inset-0 bg-black -z-10"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
@@ -114,13 +118,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        <div className="mt-auto pt-6 border-t border-white/5">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 mb-4">
+        <div className="mt-auto pt-6 border-t border-slate-100">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 mb-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-xs font-medium text-emerald-400">Sistema Online</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Sistema Online</span>
             </div>
-            <div className="text-[10px] text-slate-500 leading-tight">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 leading-tight">
               Processamento em tempo real ativo.
             </div>
           </div>
@@ -129,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Mobile Tab Bar */}
       <div className="lg:hidden fixed bottom-6 left-6 right-6 z-[100]">
-        <div className="bg-[oklch(20%_0.01_250_/_0.6)] backdrop-blur-3xl border border-[oklch(100%_0_0_/_0.1)] rounded-[24px] p-2 flex items-center justify-around shadow-2xl">
+        <div className="bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[24px] p-2 flex items-center justify-around shadow-2xl">
           {menuItems.filter(item => item.id !== AnalysisMode.ADMIN_KEYS).map((item) => {
             const isActive = currentMode === item.id;
             return (
@@ -138,20 +142,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onModeChange(item.id as AnalysisMode)}
                 className={cn(
                   "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all duration-300 active:scale-90",
-                  isActive ? "text-white" : "text-slate-500"
+                  isActive ? "text-black" : "text-slate-400"
                 )}
               >
                 <div className={cn(
                   "p-2 rounded-xl transition-all duration-300",
-                  isActive ? "bg-white/10" : ""
+                  isActive ? "bg-black/5" : ""
                 )}>
                   <item.icon size={20} />
                 </div>
-                <span className="text-[10px] font-medium uppercase">{item.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-active"
-                    className="w-1 h-1 rounded-full bg-violet-500 mt-1"
+                    className="w-1 h-1 rounded-full bg-blue-500 mt-1"
                   />
                 )}
               </button>

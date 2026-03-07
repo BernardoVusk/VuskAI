@@ -17,11 +17,13 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     <motion.div 
       layout
       className={cn(
-        "relative bg-[oklch(20%_0.01_250_/_0.4)] backdrop-blur-2xl border border-[oklch(100%_0_0_/_0.1)] rounded-[32px] overflow-hidden",
-        hoverEffect && "transition-all duration-500 hover:border-white/20 hover:bg-black/50 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-[0.98]",
+        "relative bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-sm",
+        hoverEffect && "transition-all duration-500 hover:border-slate-300 hover:bg-slate-50 hover:shadow-2xl active:scale-[0.99]",
         className
       )}
     >
+      {/* Subtle Inner Glow */}
+      <div className="absolute inset-0 pointer-events-none rounded-[32px] ring-1 ring-inset ring-white/50 z-10" />
       {children}
     </motion.div>
   );

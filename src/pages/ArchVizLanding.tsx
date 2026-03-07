@@ -403,7 +403,7 @@ const ArchVizLanding = () => {
               <ComparisonSlider 
                 beforeImage="https://i.imgur.com/2sV7uN5.png"
                 afterImage="https://i.imgur.com/XlqBtsA.png"
-                className="mt-auto"
+                className="mt-auto aspect-video"
               />
             </div>
 
@@ -584,14 +584,14 @@ const ArchVizLanding = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {styles.map((style) => (
               <div key={style.id} className="section-reveal group">
+                <div className="mb-4 flex flex-col items-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">{style.label}</p>
+                </div>
                 <ComparisonSlider 
                   beforeImage={style.beforeImg}
                   afterImage={style.afterImg}
-                  className="aspect-square bg-zinc-900"
+                  className="aspect-square bg-zinc-900 rounded-2xl border border-white/10"
                 />
-                <div className="mt-4 flex flex-col items-center">
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3 text-zinc-400">{style.label}</p>
-                </div>
               </div>
             ))}
           </div>
