@@ -36,6 +36,7 @@ const ArchVizLanding = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [spots, setSpots] = useState(14);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
+  const [isPlaying, setIsPlaying] = useState(false);
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -367,15 +368,31 @@ const ArchVizLanding = () => {
 
           <div className="hero-visual relative max-w-5xl mx-auto rounded-[32px] overflow-hidden border border-border shadow-2xl bg-slate-50 p-2">
             <div className="rounded-[24px] overflow-hidden aspect-video bg-zinc-100 relative">
-              <img src="https://images.unsplash.com/photo-1600607687940-4e2a09695d51?q=80&w=2070&auto=format&fit=crop" 
-                   alt="Dashboard Preview" 
-                   className="w-full h-full object-cover"
-                   referrerPolicy="no-referrer" />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors cursor-pointer group">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                  <Play className="w-6 h-6 text-black fill-black" />
-                </div>
-              </div>
+              {isPlaying ? (
+                <iframe 
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/uATQw9z-neE?autoplay=1" 
+                  title="ArchRender AI Preview"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <>
+                  <img src="https://img.youtube.com/vi/uATQw9z-neE/maxresdefault.jpg" 
+                       alt="Dashboard Preview" 
+                       className="w-full h-full object-cover"
+                       referrerPolicy="no-referrer" />
+                  <div 
+                    onClick={() => setIsPlaying(true)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors cursor-pointer group"
+                  >
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                      <Play className="w-6 h-6 text-black fill-black" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
