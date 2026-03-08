@@ -34,6 +34,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [selectedType, setSelectedType] = useState<'all' | 'image' | 'video'>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
@@ -45,6 +46,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     name: '',
     prompt_text: '',
     category: 'Interior Luxo',
+    type: 'image' as 'image' | 'video',
     tutorial_url: '',
     image_before: null as File | null,
     image_after: null as File | null,
@@ -121,6 +123,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         name: form.name,
         prompt_text: form.prompt_text,
         category: form.category,
+        type: form.type,
         tutorial_url: form.tutorial_url,
         image_before_url: beforeUrl,
         image_after_url: afterUrl
@@ -148,6 +151,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         name: '',
         prompt_text: '',
         category: 'Interior Luxo',
+        type: 'image',
         tutorial_url: '',
         image_before: null,
         image_after: null,
@@ -187,7 +191,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          item.prompt_text.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todos' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesType = selectedType === 'all' || item.type === selectedType;
+    return matchesSearch && matchesCategory && matchesType;
   });
 
   return (
@@ -206,6 +211,38 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <div className="flex bg-slate-100 p-1 rounded-full mr-2">
+            <button
+              onClick={() => setSelectedType('all')}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
+                selectedType === 'all' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setSelectedType('image')}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                selectedType === 'image' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <ImageIcon size={12} />
+              Imagens
+            </button>
+            <button
+              onClick={() => setSelectedType('video')}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                selectedType === 'video' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Video size={12} />
+              Vídeos
+            </button>
+          </div>
+
           {categories.map(cat => (
             <button
               key={cat}
@@ -228,6 +265,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   name: '',
                   prompt_text: '',
                   category: 'Interior Luxo',
+                  type: 'image',
                   tutorial_url: '',
                   image_before: null,
                   image_after: null,
@@ -273,11 +311,17 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       afterLabel="Depois"
                       className="h-full w-full rounded-none border-0"
                     />
-                    <div className="absolute top-4 left-4 z-10">
-                      <Badge className="bg-white/80 backdrop-blur-md border-slate-200 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
-                        {item.category}
-                      </Badge>
-                    </div>
+                  <div className="absolute top-4 left-4 z-10 flex gap-2">
+                    <Badge className="bg-white/80 backdrop-blur-md border-slate-200 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
+                      {item.category}
+                    </Badge>
+                    <Badge className={cn(
+                      "backdrop-blur-md border-transparent text-white text-[10px] font-bold uppercase tracking-widest",
+                      item.type === 'video' ? "bg-blue-600/80" : "bg-emerald-600/80"
+                    )}>
+                      {item.type === 'video' ? 'Vídeo' : 'Imagem'}
+                    </Badge>
+                  </div>
                     {isAdmin && (
                       <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
@@ -287,6 +331,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                               name: item.name,
                               prompt_text: item.prompt_text,
                               category: item.category,
+                              type: item.type || 'image',
                               tutorial_url: item.tutorial_url || '',
                               image_before: null,
                               image_after: null,
@@ -428,6 +473,31 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Tipo de Prompt</label>
+                    <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                      <button
+                        onClick={() => setForm({ ...form, type: 'image' })}
+                        className={cn(
+                          "flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                          form.type === 'image' ? "bg-white text-black shadow-sm" : "text-slate-400 hover:text-slate-600"
+                        )}
+                      >
+                        <ImageIcon size={14} />
+                        Imagem
+                      </button>
+                      <button
+                        onClick={() => setForm({ ...form, type: 'video' })}
+                        className={cn(
+                          "flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                          form.type === 'video' ? "bg-white text-black shadow-sm" : "text-slate-400 hover:text-slate-600"
+                        )}
+                      >
+                        <Video size={14} />
+                        Vídeo
+                      </button>
+                    </div>
+                  </div>
+                  <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Nome do Projeto</label>
                     <input
                       type="text"
@@ -437,6 +507,9 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       placeholder="Ex: Loft Industrial"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Categoria</label>
                     <select
@@ -449,29 +522,18 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Prompt Utilizado</label>
-                  <textarea
-                    value={form.prompt_text}
-                    onChange={e => setForm({ ...form, prompt_text: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 h-32 resize-none font-medium"
-                    placeholder="Cole aqui o prompt que gerou o resultado..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">URL do Tutorial (YouTube)</label>
-                  <div className="relative">
-                    <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                      type="text"
-                      value={form.tutorial_url}
-                      onChange={e => setForm({ ...form, tutorial_url: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition-all font-medium"
-                      placeholder="https://www.youtube.com/watch?v=..."
-                    />
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">URL do Tutorial (YouTube)</label>
+                    <div className="relative">
+                      <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="text"
+                        value={form.tutorial_url}
+                        onChange={e => setForm({ ...form, tutorial_url: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition-all font-medium"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                      />
+                    </div>
                   </div>
                 </div>
 

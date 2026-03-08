@@ -84,6 +84,7 @@ export interface NeuralLibraryItem {
   image_before_url: string;
   image_after_url: string;
   category: string;
+  type: 'image' | 'video';
   tutorial_url?: string;
   created_at: string;
 }
