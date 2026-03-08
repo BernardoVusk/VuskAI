@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnalysisMode, UserSubscriptions } from '../../types';
-import logoImg from '../../assets/logo.png';
+const LOGO_URL = "https://i.imgur.com/ptDOAO8.png";
 
 interface SidebarProps {
   currentMode: AnalysisMode;
@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         
         <div className="mb-12 px-2">
           <div className="flex items-center gap-3 mb-1">
-            <img src={logoImg} alt="ArchRender AI" className="h-32 w-auto object-contain" />
+            <img src={LOGO_URL} alt="ArchRender AI" className="h-32 w-auto object-contain" />
           </div>
         </div>
 
