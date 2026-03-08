@@ -100,13 +100,26 @@ const parseJSONResponse = (text: string): AnalysisResult => {
 };
 
 /**
+ * Helper to add a timeout to a promise
+ */
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout: A operação demorou mais de ${ms/1000}s`)), ms)
+    )
+  ]);
+};
+
+/**
  * Helper to retry API calls on 503/429 errors
  */
-const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 5): Promise<T> => {
+const withRetry = async <T>(fn: (attempt: number) => Promise<T>, maxRetries = 3): Promise<T> => {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
     try {
-      return await fn();
+      // Add a 30s timeout to each attempt
+      return await withTimeout(fn(i), 30000);
     } catch (error: any) {
       lastError = error;
       const errorStr = JSON.stringify(error).toUpperCase();
@@ -117,15 +130,16 @@ const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 5): Promise<T> =>
         message.includes('UNAVAILABLE') || 
         message.includes('429') || 
         message.includes('RESOURCE_EXHAUSTED') ||
+        message.includes('TIMEOUT') ||
         errorStr.includes('503') ||
         errorStr.includes('UNAVAILABLE') ||
         error.status === 'UNAVAILABLE' ||
         error.code === 503;
       
       if (isRetryable && i < maxRetries - 1) {
-        // Exponential backoff: 1s, 2s, 4s, 8s...
-        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-        console.warn(`Google API is busy (503/429). Retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
+        // Exponential backoff: 2s, 4s, 8s...
+        const delay = Math.pow(2, i + 1) * 1000 + Math.random() * 1000;
+        console.warn(`Google API is busy or timed out. Retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -133,6 +147,40 @@ const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 5): Promise<T> =>
     }
   }
   throw lastError;
+};
+
+/**
+ * Helper to try a primary model and fallback to a secondary one if it fails
+ */
+const withFallback = async <T>(
+  primaryFn: (model: string) => Promise<T>,
+  primaryModel: string = 'gemini-3.1-pro-preview',
+  fallbackModel: string = 'gemini-3-flash-preview'
+): Promise<T> => {
+  try {
+    // Try primary model with retries
+    return await withRetry(() => primaryFn(primaryModel));
+  } catch (error: any) {
+    const errorStr = JSON.stringify(error).toUpperCase();
+    const message = (error.message || "").toUpperCase();
+    
+    const isOverloaded = 
+      message.includes('503') || 
+      message.includes('UNAVAILABLE') || 
+      message.includes('429') || 
+      message.includes('RESOURCE_EXHAUSTED') ||
+      errorStr.includes('503') ||
+      errorStr.includes('UNAVAILABLE');
+
+    if (isOverloaded) {
+      console.warn(`Primary model (${primaryModel}) is overloaded. Falling back to ${fallbackModel}...`);
+      // Try fallback model with retries
+      return await withRetry(() => primaryFn(fallbackModel));
+    }
+    
+    // If it's not an overload error, just rethrow
+    throw error;
+  }
 };
 
 /**
@@ -152,73 +200,48 @@ export const analyzeReferenceImage = async (base64Image: string, mimeType: strin
     - **FOCUS ONLY** on the "Mannequin" (Pose/Anatomy), the "Expression" (Muscle Action), the "Clothing" (Fabric/Drape), and the "Lighting".
 
     **ANALYZE THESE 6 LAYERS:**
-
-    1. **💀 ANATOMICAL RIGGING (The Container):**
-       - Describe the skeleton position strictly. "Subject seated, head tilted 15 degrees left, chin up."
-       - Finger placement is CRITICAL.
-       - Body language: "Slouching shoulders," "Spine straight," "Leaning forward."
-
-    2. **😲 FACIAL RIGGING & MICRO-EXPRESSIONS (The Emotion):**
-       - **EYE TENSION:** Are the eyes squinting (Duchenne marker)? Wide open in shock? Relaxed? Look for "crow's feet" tension or brow furrowing.
-       - **MOUTH MECHANICS:** Describe the exact shape. "Wide open laugh exposing upper teeth," "Tight-lipped grimace," "Biting lower lip," "Puffing cheeks," "Tongue sticking out."
-       - **JAW & MUSCLES:** Is the jaw clenched? Are there dimples visible? 
-       - **CARETA/GRIMACE:** If they are making a funny face, describe the distortion explicitly.
-
-    3. **👁️ OCULAR FORENSICS (The Soul):**
-       - **SCLERA:** Is it off-white? Veined? Yellowed? (Never pure white).
-       - **IRIS:** Fibrous texture? Crypts? Limbal ring softness?
-       - **MOISTURE:** Wetness on the waterline (tear meniscus) and caruncle (pink corner).
-       - **GEOMETRY:** Corneal bulge/refraction if side view.
-
-    4. **👗 CLOTHING & FABRIC PHYSICS (Detail Heavy):**
-       - **MATERIAL:** Identify exact fabric (e.g., "Heavyweight French Terry cotton," "Sheer chiffon," "Rigid raw denim").
-       - **TEXTURE & FINISH:** Describe the surface (e.g., "Ribbed texture," "Satin sheen," "Distressed vintage wash").
-       - **FIT & DRAPE:** How it hangs on the body.
-
-    5. **💡 LIGHTING MAP (The Texture Source):**
-       - **DIRECTION:** Exact source angle. "Hard sunlight from top-right."
-       - **BANALITY:** Is it "boring office fluorescent"? "Harsh noon sun"? Avoid "cinematic" terms.
-
-    6. **📷 OPTICAL & IMPERFECTIONS:**
-       - **FOCUS:** Confirm background is in focus (Deep DoF).
-       - **IMPERFECTIONS:** Mention if the framing is crooked, if there are smudges, or if the composition is "accidental".
+    1. ANATOMICAL RIGGING
+    2. FACIAL RIGGING & MICRO-EXPRESSIONS
+    3. OCULAR FORENSICS
+    4. CLOTHING & FABRIC PHYSICS
+    5. LIGHTING MAP
+    6. OPTICAL & IMPERFECTIONS
 
     **OUTPUT INSTRUCTION:** 
-    Return a valid JSON object with the following structure:
-    {
-      "physicalDescription": "Detailed description of pose, expression, and clothing...",
-      "suggestedPrompt": "The full prompt text..."
-    }
-
+    Return a valid JSON object.
+    
     **SUGGESTED PROMPT FORMAT:**
     Organize the 'suggestedPrompt' into 3 distinct paragraphs separated by double line breaks:
-    
-    **PARAGRAPH 1 (BACKGROUND):** Describe the environment, setting, and background elements in detail.
-    
-    **PARAGRAPH 2 (SUBJECT):** Describe the person (if present), their pose, anatomy, expression, clothing, and textures.
-    
-    **PARAGRAPH 3 (CHARACTERISTICS):** Describe the technical image characteristics, lighting, optics, imperfections, and camera settings.
-
-    **START WITH:** "The most real and human possible..." (in the characteristics paragraph or implicitly handled by the prefix).
-    **END WITH:** "...f/1.8, ISO 200, Background fully sharp. ${IDENTITY_ENFORCEMENT}"
+    PARAGRAPH 1 (BACKGROUND), PARAGRAPH 2 (SUBJECT), PARAGRAPH 3 (CHARACTERISTICS).
   `;
 
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+    const response = await withFallback((model) => ai.models.generateContent({
+      model: model, 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: prompt },
         ],
       },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            physicalDescription: { type: Type.STRING },
+            suggestedPrompt: { type: Type.STRING },
+          },
+          required: ["physicalDescription", "suggestedPrompt"],
+        },
+      }
     }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
     }
 
-    const result = parseJSONResponse(response.text);
+    const result = JSON.parse(response.text);
     result.suggestedPrompt = formatOutput(result.suggestedPrompt);
     return result;
   } catch (error: unknown) {
@@ -237,53 +260,43 @@ export const analyzeLifestyleImage = async (base64Image: string, mimeType: strin
     Your task is to analyze the image and generate a prompt that recreates it as a CASUAL, UNEDITED IPHONE PHOTO.
     Ignore "artistic" interpretations. Focus on PHYSICS, OPTICS, and IMPERFECTIONS.
 
-    **ANALYZE THESE 5 KEY AREAS (The DNA of the Prompt):**
-
-    1. **🔭 OPTICS & SENSOR PHYSICS:**
-       - Estimate focal length (~26mm wide for phone).
-       - Estimate Aperture/ISO (e.g., "f/1.8, ISO 400").
-       - **FOCUS:** Confirm if the background is sharp (Deep Depth of Field).
-       - **NOISE:** Is there digital grain?
-
-    2. **❌ INTENTIONAL IMPERFECTIONS (Crucial for Realism):**
-       - **FRAMING:** Is it crooked? Off-center? Accidental cropping?
-       - **DIRT/TEXTURE:** Look for smudges on mirrors, dirty foam, dust on surfaces, messy hair, wrinkles in clothes.
-       - **MOTION:** Is there slight motion blur on hands or background?
-
-    3. **💡 BANAL LIGHTING (The "Boring" Light):**
-       - Is it harsh noon sun? Overhead fluorescent? Camera flash bounce?
-       - AVOID "Golden Hour" or "Cinematic" unless strictly visible. Prefer "Natural", "Neutral", "Hard-edged shadows".
-
-    4. **🚫 NEGATIVE CONCEPTUALIZATION:**
-       - Explicitly state: "No color grading, no cinematic look, no stylization, no bokeh".
-
-    5. **🌍 SCENE & SUBJECT:**
-       - Describe the scene physically (materials, colors, objects).
-       - Describe the subject's pose as "casual" or "unposed".
+    **ANALYZE THESE 5 KEY AREAS:**
+    1. OPTICS & SENSOR PHYSICS
+    2. INTENTIONAL IMPERFECTIONS
+    3. BANAL LIGHTING
+    4. NEGATIVE CONCEPTUALIZATION
+    5. SCENE & SUBJECT
 
     **OUTPUT FORMAT:**
-    Return a valid JSON object with the following structure:
-    {
-      "physicalDescription": "Detailed description...",
-      "suggestedPrompt": "The prompt MUST start with: 'The most real and human possible...' and end with technical metadata."
-    }
+    Return a valid JSON object.
   `;
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+    const response = await withFallback((model) => ai.models.generateContent({
+      model: model, 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: prompt },
         ],
       },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            physicalDescription: { type: Type.STRING },
+            suggestedPrompt: { type: Type.STRING },
+          },
+          required: ["physicalDescription", "suggestedPrompt"],
+        },
+      }
     }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
     }
 
-    const result = parseJSONResponse(response.text);
+    const result = JSON.parse(response.text);
     result.suggestedPrompt = formatOutput(result.suggestedPrompt);
     return result;
   } catch (error: unknown) { 
@@ -299,50 +312,41 @@ export const analyzeCinematicImage = async (base64Image: string, mimeType: strin
     ACT AS: "Master Director of Photography (DoP) & Colorist".
     Your mission: Translate this image into a high-budget HOLLYWOOD SCREENPLAY & SHOT LIST description.
     
-    **REQUIRED CINEMATIC LAYERS (Must analyze for Vertical Video Production 9:16):**
+    **REQUIRED CINEMATIC LAYERS:**
+    1. CAMERA & LENS PACKAGE
+    2. LIGHTING & ATMOSPHERE
+    3. COLOR GRADING
+    4. SCENE COMPOSITION & NARRATIVE
 
-    1.  **🎥 CAMERA & LENS PACKAGE:**
-        - Identify the visual language: Is it Anamorphic (oval bokeh, horizontal flares)? Is it Spherical (sharp, clean)?
-        - Sensor Size: "Large Format (IMAX)" for epic scale or "Super 35mm" for classic grain.
-        - Focal Length: "85mm Telephoto" (compressed background) vs "24mm Wide" (expansive).
-        - **ASPECT RATIO:** Enforce 9:16 vertical composition instructions.
-
-    2.  **💡 LIGHTING & ATMOSPHERE (Volumetrics):**
-        - Analyze the light ratios: "Chiaroscuro" (high contrast), "Rembrandt Lighting" (triangle on cheek), or "Soft Diffused Moonlight".
-        - ATMOSPHERE: Is there "Haze", "Fog", "Dust particles", or "Steam"? (Crucial for video depth).
-        - Color Temp: "Warm Tungsten (3200K)" vs "Cool Daylight (5600K)".
-
-    3.  **🎨 COLOR GRADING (The "Look"):**
-        - Define the LUT/Grade: "Teal & Orange" (Action), "Bleach Bypass" (Gritty war/crime), "Technicolor" (Vibrant vintage), or "Desaturated Noir".
-        - Describe the shadows: Are they crushed black or lifted matte grey?
-
-    4.  **🎬 SCENE COMPOSITION & NARRATIVE:**
-        - Rule of Thirds, Leading Lines, Center Framing (Wes Anderson style).
-        - Describe the subject's action as a "Keyframe": "Subject is frozen mid-stride," "Looking intensely off-camera."
-
-    **OUTPUT:** Return a valid JSON object with the following structure:
-    {
-      "physicalDescription": "Detailed shot list description...",
-      "suggestedPrompt": "A single, epic paragraph suitable for Midjourney/Stable Diffusion..."
-    }
+    **OUTPUT:** Return a valid JSON object.
   `;
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+    const response = await withFallback((model) => ai.models.generateContent({
+      model: model, 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: prompt },
         ],
       },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            physicalDescription: { type: Type.STRING },
+            suggestedPrompt: { type: Type.STRING },
+          },
+          required: ["physicalDescription", "suggestedPrompt"],
+        },
+      }
     }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
     }
 
-    const result = parseJSONResponse(response.text);
-    // We don't use formatCinematicOutput here because we want the raw prompt from the new logic
+    const result = JSON.parse(response.text);
     return result;
   } catch (error: unknown) { 
     console.error("Cinematic Analysis failed:", error);
@@ -357,30 +361,36 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
     ACT AS: "The CTR Alchemist" (E-commerce Visual Expert).
     Analyze the product in this image for High-CTR Marketplace Photography.
     Physics Check, Hero Angle, and Buyer Vibe.
-    OUTPUT STRUCTURE: [SUBJECT ANCHOR], [ENVIRONMENT & VIBE], [LIGHTING], [TECHNICAL], [COMPOSITION].
     
-    Return a valid JSON object with:
-    {
-      "physicalDescription": "Analysis of the product...",
-      "suggestedPrompt": "The optimized prompt..."
-    }
+    Return a valid JSON object.
   `;
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+    const response = await withFallback((model) => ai.models.generateContent({
+      model: model, 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: prompt },
         ],
       },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            physicalDescription: { type: Type.STRING },
+            suggestedPrompt: { type: Type.STRING },
+          },
+          required: ["physicalDescription", "suggestedPrompt"],
+        },
+      }
     }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
     }
 
-    const result = parseJSONResponse(response.text);
+    const result = JSON.parse(response.text);
     result.suggestedPrompt = formatMarketplaceOutput(result.suggestedPrompt);
     return result;
   } catch (error: unknown) { 
@@ -392,23 +402,50 @@ export const analyzeMarketplaceImage = async (base64Image: string, mimeType: str
 
 export const analyzeArchitectureImage = async (base64Image: string, mimeType: string = 'image/jpeg'): Promise<AnalysisResult> => {
   const ai = getClient();
-  const prompt = `ACT AS: "The BIM Visionary". Analyze the technical drawing for PBR/GI rendering instructions. Return JSON with "physicalDescription" and "suggestedPrompt".`;
+  const prompt = `
+    ACT AS: "The BIM Visionary" (Architectural Visualization Expert).
+    Analyze the provided architectural image (drawing, render, or photo) and extract technical instructions for a PBR (Physically Based Rendering) and GI (Global Illumination) engine.
+
+    **REQUIRED ANALYSIS:**
+    1. **STRUCTURAL ELEMENTS:** Identify walls, windows, roof types, and structural rhythm.
+    2. **MATERIALS:** Identify exact materials (e.g., "Exposed concrete," "Oak wood panels," "Double-glazed glass").
+    3. **LIGHTING:** Identify light sources, time of day, and shadow quality.
+    4. **ENVIRONMENT:** Identify surrounding vegetation, urban context, or interior decor.
+
+    **OUTPUT INSTRUCTION:**
+    Return a valid JSON object with:
+    - "physicalDescription": A technical summary of the architecture and materials.
+    - "suggestedPrompt": A high-end architectural visualization prompt.
+
+    The "suggestedPrompt" must be detailed and professional.
+  `;
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+    const response = await withFallback((model) => ai.models.generateContent({
+      model: model, 
       contents: {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: prompt },
         ],
       },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            physicalDescription: { type: Type.STRING },
+            suggestedPrompt: { type: Type.STRING },
+          },
+          required: ["physicalDescription", "suggestedPrompt"],
+        },
+      }
     }));
 
     if (!response.text) {
         throw new Error("No text response from AI");
     }
 
-    const result = parseJSONResponse(response.text);
+    const result = JSON.parse(response.text);
     result.suggestedPrompt = formatArchitectureOutput(result.suggestedPrompt);
     return result;
   } catch (error: unknown) { 

@@ -215,65 +215,81 @@ export const useVuskAI = () => {
       const mimeType = state.image.split(';')[0].split(':')[1];
 
       // 1. Create a row in the history table
-      const { data: historyData, error: historyError } = await supabase
-        .from('history')
-        .insert({
-          user_id: state.user.id,
-          mode: state.mode,
-          status: 'processando'
-        })
-        .select()
-        .single();
+      let historyId: string | null = null;
+      try {
+        const { data: historyData, error: historyError } = await supabase
+          .from('history')
+          .insert({
+            user_id: state.user.id,
+            mode: state.mode,
+            status: 'processando'
+          })
+          .select()
+          .single();
 
-      if (historyError || !historyData) {
-        throw new Error("Erro ao criar registro de análise no banco de dados.");
+        if (!historyError && historyData) {
+          historyId = historyData.id;
+          console.log('Analysis history record created:', historyId);
+        } else {
+          console.warn('Could not create history record, proceeding anyway:', historyError);
+        }
+      } catch (err) {
+        console.warn('Supabase history insert failed, proceeding anyway:', err);
       }
 
-      const historyId = historyData.id;
-      console.log('Analysis history record created:', historyId);
-
-      // 2. Call Gemini directly from frontend (Guideline: NEVER call Gemini API from the backend)
+      // 2. Call Gemini directly from frontend
       let analysisResult: AnalysisResult;
       
       console.log('Starting Gemini analysis for mode:', state.mode);
-      switch (state.mode) {
-        case AnalysisMode.IDENTITY:
-          analysisResult = await analyzeReferenceImage(base64, mimeType);
-          break;
-        case AnalysisMode.LIFESTYLE:
-          analysisResult = await analyzeLifestyleImage(base64, mimeType);
-          break;
-        case AnalysisMode.CINEMATIC:
-          analysisResult = await analyzeCinematicImage(base64, mimeType);
-          break;
-        case AnalysisMode.MARKETPLACE:
-          analysisResult = await analyzeMarketplaceImage(base64, mimeType);
-          break;
-        case AnalysisMode.ARCHITECTURE:
-          analysisResult = await analyzeArchitectureImage(base64, mimeType);
-          break;
-        default:
-          throw new Error("Invalid analysis mode");
+      try {
+        switch (state.mode) {
+          case AnalysisMode.IDENTITY:
+            analysisResult = await analyzeReferenceImage(base64, mimeType);
+            break;
+          case AnalysisMode.LIFESTYLE:
+            analysisResult = await analyzeLifestyleImage(base64, mimeType);
+            break;
+          case AnalysisMode.CINEMATIC:
+            analysisResult = await analyzeCinematicImage(base64, mimeType);
+            break;
+          case AnalysisMode.MARKETPLACE:
+            analysisResult = await analyzeMarketplaceImage(base64, mimeType);
+            break;
+          case AnalysisMode.ARCHITECTURE:
+            analysisResult = await analyzeArchitectureImage(base64, mimeType);
+            break;
+          default:
+            throw new Error("Modo de análise inválido");
+        }
+      } catch (geminiErr: any) {
+        console.error('Gemini Analysis Error:', geminiErr);
+        throw new Error(`Erro na análise da IA: ${geminiErr.message || 'Erro desconhecido'}`);
       }
 
       console.log('Gemini analysis completed:', analysisResult);
 
       // 3. Update Supabase with the result
-      console.log('Updating Supabase history record...');
-      const { error: updateError } = await supabase
-        .from('history')
-        .update({ 
-          status: 'concluído', 
-          result: analysisResult 
-        })
-        .eq('id', historyId);
+      if (historyId) {
+        console.log('Updating Supabase history record...');
+        try {
+          const { error: updateError } = await supabase
+            .from('history')
+            .update({ 
+              status: 'concluído', 
+              result: analysisResult 
+            })
+            .eq('id', historyId);
 
-      if (updateError) {
-        console.error('Supabase update error:', updateError);
-        throw new Error(`Erro ao atualizar histórico: ${updateError.message}`);
+          if (updateError) {
+            console.error('Supabase update error:', updateError);
+          } else {
+            console.log('Supabase history record updated successfully');
+          }
+        } catch (err) {
+          console.warn('Supabase history update failed:', err);
+        }
       }
 
-      console.log('Supabase history record updated successfully');
       setState(prev => ({ ...prev, analysis: analysisResult, status: AppStatus.REVIEW }));
 
     } catch (error: unknown) {
