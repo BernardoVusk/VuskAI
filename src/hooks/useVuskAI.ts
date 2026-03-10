@@ -117,8 +117,8 @@ export const useVuskAI = () => {
       const mergedSubs = userId ? subs : getLocalSubscriptions();
 
       setState(prev => ({ ...prev, subscriptions: mergedSubs }));
-    } catch (err) {
-      console.error('Failed to fetch subscriptions:', err);
+    } catch (err: any) {
+      console.error('Failed to fetch subscriptions:', err?.message || String(err));
       // Fallback to local only if DB fails
       setState(prev => ({ ...prev, subscriptions: getLocalSubscriptions() }));
     }
@@ -262,7 +262,7 @@ export const useVuskAI = () => {
             throw new Error("Modo de análise inválido");
         }
       } catch (geminiErr: any) {
-        console.error('Gemini Analysis Error:', geminiErr);
+        console.error('Gemini Analysis Error:', geminiErr?.message || String(geminiErr));
         throw new Error(`Erro na análise da IA: ${geminiErr.message || 'Erro desconhecido'}`);
       }
 
@@ -281,20 +281,20 @@ export const useVuskAI = () => {
             .eq('id', historyId);
 
           if (updateError) {
-            console.error('Supabase update error:', updateError);
+            console.error('Supabase update error:', updateError.message || String(updateError));
           } else {
             console.log('Supabase history record updated successfully');
           }
-        } catch (err) {
-          console.warn('Supabase history update failed:', err);
+        } catch (err: any) {
+          console.warn('Supabase history update failed:', err?.message || String(err));
         }
       }
 
       setState(prev => ({ ...prev, analysis: analysisResult, status: AppStatus.REVIEW }));
 
-    } catch (error: unknown) {
+    } catch (error: any) {
       const message = error instanceof Error ? error.message : "Analysis failed due to an unknown error.";
-      console.error('Analysis error:', error);
+      console.error('Analysis error:', message);
       setState(prev => ({ ...prev, status: AppStatus.ERROR, error: message }));
     }
   };

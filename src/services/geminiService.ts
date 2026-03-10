@@ -114,27 +114,22 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
 /**
  * Helper to retry API calls on 503/429 errors
  */
-const withRetry = async <T>(fn: (attempt: number) => Promise<T>, maxRetries = 3): Promise<T> => {
+const withRetry = async <T>(fn: (attempt: number) => Promise<T>, maxRetries = 2): Promise<T> => {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
     try {
-      // Add a 30s timeout to each attempt
-      return await withTimeout(fn(i), 30000);
+      // Reduced timeout to 20s for faster feedback
+      return await withTimeout(fn(i), 20000);
     } catch (error: any) {
       lastError = error;
-      const errorStr = JSON.stringify(error).toUpperCase();
-      const message = (error.message || "").toUpperCase();
+      const message = (error.message || String(error)).toUpperCase();
       
       const isRetryable = 
         message.includes('503') || 
         message.includes('UNAVAILABLE') || 
         message.includes('429') || 
         message.includes('RESOURCE_EXHAUSTED') ||
-        message.includes('TIMEOUT') ||
-        errorStr.includes('503') ||
-        errorStr.includes('UNAVAILABLE') ||
-        error.status === 'UNAVAILABLE' ||
-        error.code === 503;
+        message.includes('TIMEOUT');
       
       if (isRetryable && i < maxRetries - 1) {
         // Exponential backoff: 2s, 4s, 8s...
@@ -154,23 +149,21 @@ const withRetry = async <T>(fn: (attempt: number) => Promise<T>, maxRetries = 3)
  */
 const withFallback = async <T>(
   primaryFn: (model: string) => Promise<T>,
-  primaryModel: string = 'gemini-3.1-pro-preview',
-  fallbackModel: string = 'gemini-3-flash-preview'
+  primaryModel: string = 'gemini-3-flash-preview',
+  fallbackModel: string = 'gemini-3.1-pro-preview'
 ): Promise<T> => {
   try {
     // Try primary model with retries
     return await withRetry(() => primaryFn(primaryModel));
   } catch (error: any) {
-    const errorStr = JSON.stringify(error).toUpperCase();
-    const message = (error.message || "").toUpperCase();
+    const message = (error.message || String(error)).toUpperCase();
     
     const isOverloaded = 
       message.includes('503') || 
       message.includes('UNAVAILABLE') || 
       message.includes('429') || 
       message.includes('RESOURCE_EXHAUSTED') ||
-      errorStr.includes('503') ||
-      errorStr.includes('UNAVAILABLE');
+      message.includes('TIMEOUT');
 
     if (isOverloaded) {
       console.warn(`Primary model (${primaryModel}) is overloaded. Falling back to ${fallbackModel}...`);

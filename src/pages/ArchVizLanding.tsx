@@ -36,9 +36,34 @@ const ArchVizLanding = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [spots, setSpots] = useState(14);
   const [timeLeft, setTimeLeft] = useState(899); // 14:59
-  const [isPlaying, setIsPlaying] = useState(false);
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Global error handler to catch circular structure errors from third-party scripts
+    const handleError = (event: ErrorEvent) => {
+      if (event.message?.includes('Converting circular structure to JSON') || 
+          event.error?.message?.includes('Converting circular structure to JSON')) {
+        event.preventDefault();
+        console.warn('Caught and suppressed circular structure error from third-party script.');
+      }
+    };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      if (event.reason?.message?.includes('Converting circular structure to JSON')) {
+        event.preventDefault();
+        console.warn('Caught and suppressed circular structure rejection from third-party script.');
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
 
   // Interactive States
   const [sliderPercent, setSliderPercent] = useState(50);
@@ -227,8 +252,8 @@ const ArchVizLanding = () => {
         if (user.email) url.searchParams.append('prefilled_email', user.email);
       }
       window.open(url.toString(), '_blank');
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (error: any) {
+      console.error('Subscription Error:', error?.message || String(error));
       alert('Erro ao redirecionar para o pagamento.');
     } finally {
       setLoadingPlan(null);
@@ -260,11 +285,11 @@ const ArchVizLanding = () => {
       {/* HEADER */}
       <header id="header" className="fixed top-0 left-0 w-full z-50 transition-all duration-300 py-4 px-6 md:px-12">
         <nav className="max-w-7xl mx-auto flex items-center justify-between nav-blur rounded-2xl px-4 md:px-6 h-16 md:h-20 border border-border shadow-sm relative">
-          <a href="/" className="flex items-center h-full relative w-32 md:w-56">
+          <a href="/" className="flex items-center h-full relative w-52 md:w-56">
             <img 
               src={LOGO_URL} 
               alt="ArchRender AI" 
-              className="h-20 md:h-36 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2" 
+              className="h-32 md:h-36 w-auto object-contain max-w-none absolute left-0 top-1/2 -translate-y-1/2" 
               referrerPolicy="no-referrer" 
             />
           </a>
@@ -368,31 +393,14 @@ const ArchVizLanding = () => {
 
           <div className="hero-visual relative max-w-5xl mx-auto rounded-[32px] overflow-hidden border border-border shadow-2xl bg-slate-50 p-2">
             <div className="rounded-[24px] overflow-hidden aspect-video bg-zinc-100 relative">
-              {isPlaying ? (
-                <iframe 
-                  className="w-full h-full"
-                  src="https://www.youtube.com/embed/uATQw9z-neE?autoplay=1" 
-                  title="ArchRender AI Preview"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  allowFullScreen
-                ></iframe>
-              ) : (
-                <>
-                  <img src="https://img.youtube.com/vi/uATQw9z-neE/maxresdefault.jpg" 
-                       alt="Dashboard Preview" 
-                       className="w-full h-full object-cover"
-                       referrerPolicy="no-referrer" />
-                  <div 
-                    onClick={() => setIsPlaying(true)}
-                    className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors cursor-pointer group"
-                  >
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 text-black fill-black" />
-                    </div>
-                  </div>
-                </>
-              )}
+              <iframe 
+                src="https://scripts.converteai.net/35b97f86-a3d7-4c78-8f8b-e06ab21b1829/players/69aefbdf7d6df7c08d8f62a1/embed.html" 
+                id="69aefbdf7d6df7c08d8f62a1" 
+                style={{ border: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
+                allow="autoplay; fullscreen" 
+                allowFullScreen
+                title="Vturb Video Player"
+              ></iframe>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from "@google/genai";
 
 if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
   dotenv.config();
@@ -26,6 +27,73 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+// --- BACKGROUND WORKER LOGIC ---
+const processQueue = async () => {
+  try {
+    // Buscar o próximo job pendente
+    const { data: job, error: fetchError } = await supabase
+      .from('ai_generation_jobs')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError || !job) return;
+
+    // Marcar como processando
+    await supabase
+      .from('ai_generation_jobs')
+      .update({ status: 'processing', updated_at: new Date().toISOString() })
+      .eq('id', job.id);
+
+    console.log(`[Worker] Processando Job: ${job.id}`);
+
+    // Lógica de execução com Retry
+    const executeWithRetry = async (attempt = 0): Promise<string> => {
+      try {
+        // Usando o modelo solicitado
+        const response = await genAI.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: [{ role: 'user', parts: [{ text: `Analise esta imagem e gere um prompt de arquitetura detalhado. Imagem: ${job.input_image_url}` }] }]
+        });
+        return response.text || "Erro: Resposta vazia da IA";
+      } catch (err: any) {
+        // Se for erro de quota (429) ou erro de servidor (500/503), tentar novamente
+        const isRetryable = err.status === 429 || err.status >= 500;
+        if (isRetryable && attempt < 3) {
+          const delay = Math.pow(2, attempt) * 2000;
+          console.warn(`[Worker] Erro retryable (${err.status}). Tentando novamente em ${delay}ms...`);
+          await new Promise(res => setTimeout(res, delay));
+          return executeWithRetry(attempt + 1);
+        }
+        throw err;
+      }
+    };
+
+    const prompt = await executeWithRetry();
+
+    // Finalizar com sucesso
+    await supabase
+      .from('ai_generation_jobs')
+      .update({ 
+        status: 'completed', 
+        output_prompt: prompt,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', job.id);
+
+    console.log(`[Worker] Job ${job.id} concluído.`);
+  } catch (err: any) {
+    console.error(`[Worker] Erro crítico no worker:`, err.message);
+  }
+};
+
+// Iniciar o worker (polling a cada 5 segundos)
+setInterval(processQueue, 5000);
+
 // Middleware for raw body parsing (needed for Stripe webhook verification)
 app.use('/api/webhook', express.raw({ type: 'application/json' }));
 
@@ -46,6 +114,33 @@ app.use((req, res, next) => {
 });
 
 // --- API Routes ---
+
+app.post("/api/generate-queue", async (req, res) => {
+  const { userId, imageUrl } = req.body;
+
+  if (!userId) return res.status(401).json({ error: "Usuário não identificado" });
+
+  try {
+    // Inserir o job na fila
+    const { data: job, error } = await supabase
+      .from('ai_generation_jobs')
+      .insert({
+        user_id: userId,
+        input_image_url: imageUrl,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Retorna imediatamente o ID para o frontend
+    res.json({ jobId: job.id });
+  } catch (err: any) {
+    console.error("[API] Erro ao enfileirar job:", err.message);
+    res.status(500).json({ error: "Falha ao processar requisição" });
+  }
+});
   
   // Image Analysis Endpoint (Replacing Netlify function)
   app.post('/api/analyze-image', async (req, res) => {

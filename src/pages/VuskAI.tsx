@@ -237,7 +237,7 @@ const VuskAI = () => {
       {/* Mobile Navigation */}
       <div className="lg:hidden">
         <div className="fixed top-0 left-0 right-0 h-20 bg-[#020204]/80 backdrop-blur-xl border-b border-white/5 z-[60] flex items-center px-6">
-          <img src={LOGO_URL} alt="ArchRender AI" className="h-16 w-auto" />
+          <img src={LOGO_URL} alt="ArchRender AI" className="h-24 w-auto" />
         </div>
         <Sidebar 
           currentMode={mode}
