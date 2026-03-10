@@ -23,7 +23,14 @@ import {
   Layout,
   BookOpen,
   Terminal,
-  X
+  X,
+  Sun,
+  Sunrise,
+  Cloud,
+  CloudFog,
+  Moon,
+  Snowflake,
+  CloudRain
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -171,6 +178,17 @@ const VuskAI = () => {
         }
       ]
     }
+  ];
+
+  const weatherPresets = [
+    { id: 'sunset', name: "Pôr do Sol", prompt: "Golden hour, sunset lighting, warm orange glow, long shadows", icon: Sun },
+    { id: 'sunrise', name: "Nascer do Sol", prompt: "Sunrise light, soft morning atmosphere, cool blue and pink tones", icon: Sunrise },
+    { id: 'cloudy', name: "Nublado", prompt: "Overcast sky, soft diffused lighting, moody grey clouds", icon: Cloud },
+    { id: 'foggy', name: "Neblina", prompt: "Dense fog, misty atmosphere, ethereal lighting, low visibility", icon: CloudFog },
+    { id: 'night', name: "Noite", prompt: "Night scene, deep blue sky, artificial lighting, glowing windows", icon: Moon },
+    { id: 'snow', name: "Neve", prompt: "Snowing, winter atmosphere, white landscape, cold lighting", icon: Snowflake },
+    { id: 'rain', name: "Chuva", prompt: "Raining, wet surfaces, reflections, moody atmosphere", icon: CloudRain },
+    { id: 'storm', name: "Tempestade", prompt: "Stormy weather, lightning flashes, dark dramatic sky, heavy rain", icon: Zap },
   ];
 
   const allVideoStyles = [...videoStyles, ...dbVideoStyles];
@@ -768,6 +786,33 @@ const VuskAI = () => {
                                         </Button>
                                       </motion.div>
                                     )}
+                                  </div>
+                                </div>
+                                
+                                {/* Weather & Time Presets Section */}
+                                <div className="mt-6 p-6 rounded-2xl bg-white/5 border border-white/10">
+                                  <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                                      <Cloud size={16} className="text-slate-300" />
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-semibold text-white">Clima e Horário</div>
+                                      <div className="text-[10px] text-slate-500">Ajuste a atmosfera da cena</div>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {weatherPresets.map((preset) => (
+                                      <button
+                                        key={preset.id}
+                                        onClick={() => handleRefinePrompt(`Mude o clima/horário para: ${preset.prompt}`)}
+                                        disabled={isRefining}
+                                        className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        <preset.icon size={18} className="text-slate-400 group-hover:text-violet-400 transition-colors" />
+                                        <span className="text-[10px] font-medium text-slate-400 group-hover:text-white transition-colors">{preset.name}</span>
+                                      </button>
+                                    ))}
                                   </div>
                                 </div>
 

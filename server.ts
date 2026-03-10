@@ -29,8 +29,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
-// --- BACKGROUND WORKER LOGIC ---
+// --- CONFIGURAÇÃO DE FILA (14 REQ/MIN) ---
+const MAX_REQ_PER_MINUTE = 14;
+const MIN_INTERVAL_MS = Math.ceil(60000 / MAX_REQ_PER_MINUTE); // ~4286ms
+
 const processQueue = async () => {
+  const startTime = Date.now();
+  
   try {
     // Buscar o próximo job pendente
     const { data: job, error: fetchError } = await supabase
@@ -41,7 +46,11 @@ const processQueue = async () => {
       .limit(1)
       .maybeSingle();
 
-    if (fetchError || !job) return;
+    if (fetchError || !job) {
+      // Se não há jobs, espera o intervalo mínimo e tenta de novo
+      setTimeout(processQueue, 2000);
+      return;
+    }
 
     // Marcar como processando
     await supabase
@@ -49,23 +58,38 @@ const processQueue = async () => {
       .update({ status: 'processing', updated_at: new Date().toISOString() })
       .eq('id', job.id);
 
-    console.log(`[Worker] Processando Job: ${job.id}`);
+    console.log(`[Worker] Processando Job: ${job.id} com Gemini 1.5 Flash`);
 
-    // Lógica de execução com Retry
     const executeWithRetry = async (attempt = 0): Promise<string> => {
       try {
-        // Usando o modelo solicitado
-        const response = await genAI.models.generateContent({
+        let promptConfig: any = {
           model: "gemini-1.5-flash",
-          contents: [{ role: 'user', parts: [{ text: `Analise esta imagem e gere um prompt de arquitetura detalhado. Imagem: ${job.input_image_url}` }] }]
-        });
-        return response.text || "Erro: Resposta vazia da IA";
+          contents: [{ 
+            role: 'user', 
+            parts: [{ text: "Analise esta imagem detalhadamente e gere um prompt de arquitetura ultra-realista para renderização 4K, focando em materiais, iluminação e composição." }] 
+          }]
+        };
+
+        // Se a imagem for base64, envia como parte inline
+        if (job.input_image_url?.startsWith('data:')) {
+          const [mimePart, base64Data] = job.input_image_url.split(',');
+          const mimeType = mimePart.split(':')[1].split(';')[0];
+          promptConfig.contents[0].parts.push({
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType
+            }
+          });
+        } else if (job.input_image_url) {
+          promptConfig.contents[0].parts[0].text += `\nLink da imagem: ${job.input_image_url}`;
+        }
+
+        const result = await genAI.models.generateContent(promptConfig);
+        return result.text || "Erro: IA retornou resposta vazia.";
       } catch (err: any) {
-        // Se for erro de quota (429) ou erro de servidor (500/503), tentar novamente
         const isRetryable = err.status === 429 || err.status >= 500;
-        if (isRetryable && attempt < 3) {
-          const delay = Math.pow(2, attempt) * 2000;
-          console.warn(`[Worker] Erro retryable (${err.status}). Tentando novamente em ${delay}ms...`);
+        if (isRetryable && attempt < 2) {
+          const delay = Math.pow(2, attempt) * 3000;
           await new Promise(res => setTimeout(res, delay));
           return executeWithRetry(attempt + 1);
         }
@@ -75,7 +99,6 @@ const processQueue = async () => {
 
     const prompt = await executeWithRetry();
 
-    // Finalizar com sucesso
     await supabase
       .from('ai_generation_jobs')
       .update({ 
@@ -85,14 +108,20 @@ const processQueue = async () => {
       })
       .eq('id', job.id);
 
-    console.log(`[Worker] Job ${job.id} concluído.`);
+    console.log(`[Worker] Job ${job.id} finalizado.`);
   } catch (err: any) {
-    console.error(`[Worker] Erro crítico no worker:`, err.message);
+    console.error(`[Worker] Erro no job:`, err.message);
+    // Em caso de erro, marcamos como falho para não travar a fila
+  } finally {
+    // Cálculo para manter exatamente 14 req/min
+    const executionTime = Date.now() - startTime;
+    const waitTime = Math.max(500, MIN_INTERVAL_MS - executionTime);
+    setTimeout(processQueue, waitTime);
   }
 };
 
-// Iniciar o worker (polling a cada 5 segundos)
-setInterval(processQueue, 5000);
+// Iniciar o loop do worker
+processQueue();
 
 // Middleware for raw body parsing (needed for Stripe webhook verification)
 app.use('/api/webhook', express.raw({ type: 'application/json' }));
