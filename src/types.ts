@@ -83,6 +83,7 @@ export interface NeuralLibraryItem {
   prompt_text: string;
   image_before_url: string;
   image_after_url: string;
+  video_url?: string;
   category: string;
   type: 'image' | 'video';
   tutorial_url?: string;

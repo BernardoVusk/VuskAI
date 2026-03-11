@@ -50,8 +50,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     tutorial_url: '',
     image_before: null as File | null,
     image_after: null as File | null,
+    video_file: null as File | null,
     image_before_url: '',
-    image_after_url: ''
+    image_after_url: '',
+    video_url: ''
   });
 
   const categories = ['Todos', 'Interior Luxo', 'Fachada Moderna', 'Paisagismo', 'Comercial', 'Urbanismo'];
@@ -102,8 +104,17 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.prompt_text || (!editingItem && (!form.image_before || !form.image_after))) {
-      alert('Por favor, preencha todos os campos e selecione as imagens.');
+    // Validation: 
+    // If image: needs name, prompt, and (editing or (before and after))
+    // If video: needs name, prompt, and (editing or video_file)
+    const isFilesValid = editingItem || (
+      form.type === 'image' 
+        ? (form.image_before && form.image_after) 
+        : form.video_file
+    );
+    
+    if (!form.name || !form.prompt_text || !isFilesValid) {
+      alert('Por favor, preencha o nome, o prompt e selecione os arquivos necessários.');
       return;
     }
 
@@ -111,22 +122,27 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     try {
       let beforeUrl = form.image_before_url;
       let afterUrl = form.image_after_url;
+      let videoUrl = form.video_url;
 
       if (form.image_before) {
         beforeUrl = await uploadImage(form.image_before);
       }
-      if (form.image_after) {
+      if (form.type === 'image' && form.image_after) {
         afterUrl = await uploadImage(form.image_after);
       }
+      if (form.type === 'video' && form.video_file) {
+        videoUrl = await uploadImage(form.video_file);
+      }
 
-      const itemData = {
+      const itemData: any = {
         name: form.name,
         prompt_text: form.prompt_text,
         category: form.category,
         type: form.type,
         tutorial_url: form.tutorial_url,
-        image_before_url: beforeUrl,
-        image_after_url: afterUrl
+        image_before_url: beforeUrl || '',
+        image_after_url: form.type === 'image' ? (afterUrl || '') : '',
+        video_url: form.type === 'video' ? (videoUrl || '') : ''
       };
 
       let error;
@@ -155,8 +171,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         tutorial_url: '',
         image_before: null,
         image_after: null,
+        video_file: null,
         image_before_url: '',
-        image_after_url: ''
+        image_after_url: '',
+        video_url: ''
       });
       fetchLibrary();
     } catch (error: any) {
@@ -269,8 +287,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   tutorial_url: '',
                   image_before: null,
                   image_after: null,
+                  video_file: null,
                   image_before_url: '',
-                  image_after_url: ''
+                  image_after_url: '',
+                  video_url: ''
                 });
                 setIsModalOpen(true);
               }}
@@ -302,15 +322,43 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
                 <GlassCard className="group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl rounded-[32px] shadow-2xl flex flex-col h-full hover:shadow-black/5 transition-all duration-700 border border-slate-200/50">
-                  {/* Image Comparison */}
+                  {/* Image Comparison or Video */}
                   <div className="aspect-[3/4] relative overflow-hidden">
-                    <ImageComparisonSlider
-                      imageBefore={item.image_before_url}
-                      imageAfter={item.image_after_url}
-                      beforeLabel="Original"
-                      afterLabel="Render"
-                      className="h-full w-full rounded-none border-0"
-                    />
+                    {item.type === 'video' && item.video_url ? (
+                      <div className="w-full h-full relative">
+                        <video 
+                          src={item.video_url} 
+                          className="w-full h-full object-cover"
+                          loop
+                          muted
+                          playsInline
+                          onMouseOver={(e) => {
+                            const playPromise = e.currentTarget.play();
+                            if (playPromise !== undefined) {
+                              playPromise.catch(() => {
+                                // Ignore error
+                              });
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.pause();
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
+                          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                            <Play size={20} className="text-white fill-current ml-1" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <ImageComparisonSlider
+                        imageBefore={item.image_before_url}
+                        imageAfter={item.image_after_url}
+                        beforeLabel="Original"
+                        afterLabel="Render"
+                        className="h-full w-full rounded-none border-0"
+                      />
+                    )}
                     
                     <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
                       <Badge className="bg-black/20 backdrop-blur-xl border-white/10 text-white/70 text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1">
@@ -331,8 +379,10 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                               tutorial_url: item.tutorial_url || '',
                               image_before: null,
                               image_after: null,
+                              video_file: null,
                               image_before_url: item.image_before_url,
-                              image_after_url: item.image_after_url
+                              image_after_url: item.image_after_url,
+                              video_url: item.video_url || ''
                             });
                             setIsModalOpen(true);
                           }}
@@ -443,9 +493,11 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                {/* Before Image */}
+                {/* Before Image (Optional for videos) */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Imagem Antes (Original)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">
+                    Imagem Antes (Opcional p/ Vídeo)
+                  </label>
                   <div 
                     onClick={() => document.getElementById('before-upload')?.click()}
                     className="aspect-[9/16] bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all overflow-hidden relative group"
@@ -470,29 +522,50 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   </div>
                 </div>
 
-                {/* After Image */}
+                {/* After Image or Video */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Imagem Depois (Render)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">
+                    {form.type === 'video' ? 'Vídeo do Resultado' : 'Imagem Depois (Render)'}
+                  </label>
                   <div 
                     onClick={() => document.getElementById('after-upload')?.click()}
                     className="aspect-[9/16] bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all overflow-hidden relative group"
                   >
-                    {form.image_after ? (
-                      <img src={URL.createObjectURL(form.image_after)} className="w-full h-full object-cover" />
-                    ) : form.image_after_url ? (
-                      <img src={form.image_after_url} className="w-full h-full object-cover" />
+                    {form.type === 'video' ? (
+                      form.video_file ? (
+                        <video src={URL.createObjectURL(form.video_file)} className="w-full h-full object-cover" />
+                      ) : form.video_url ? (
+                        <video src={form.video_url} className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <Video size={24} className="text-slate-300 mb-2" />
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Upload Vídeo</span>
+                        </>
+                      )
                     ) : (
-                      <>
-                        <Upload size={24} className="text-slate-300 mb-2" />
-                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Upload Depois</span>
-                      </>
+                      form.image_after ? (
+                        <img src={URL.createObjectURL(form.image_after)} className="w-full h-full object-cover" />
+                      ) : form.image_after_url ? (
+                        <img src={form.image_after_url} className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <Upload size={24} className="text-slate-300 mb-2" />
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Upload Depois</span>
+                        </>
+                      )
                     )}
                     <input 
                       id="after-upload" 
                       type="file" 
                       className="hidden" 
-                      accept="image/*"
-                      onChange={(e) => setForm({ ...form, image_after: e.target.files?.[0] || null })}
+                      accept={form.type === 'video' ? "video/*" : "image/*"}
+                      onChange={(e) => {
+                        if (form.type === 'video') {
+                          setForm({ ...form, video_file: e.target.files?.[0] || null });
+                        } else {
+                          setForm({ ...form, image_after: e.target.files?.[0] || null });
+                        }
+                      }}
                     />
                   </div>
                 </div>
