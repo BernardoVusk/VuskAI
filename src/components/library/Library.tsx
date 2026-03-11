@@ -198,48 +198,48 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 pb-20">
       {/* Header & Filters */}
-      <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-        <div className="flex-1 w-full md:max-w-md relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+      <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
+        <div className="flex-1 w-full md:max-w-md relative group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
           <input 
             type="text"
-            placeholder="Buscar prompts ou projetos..."
+            placeholder="Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-sm font-medium"
+            className="w-full bg-white/50 backdrop-blur-sm border border-slate-200/50 rounded-2xl py-4 pl-14 pr-6 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all shadow-sm font-medium"
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div className="flex bg-slate-100 p-1 rounded-full mr-2">
+        <div className="flex flex-wrap gap-3">
+          <div className="flex bg-slate-200/50 backdrop-blur-md p-1 rounded-full">
             <button
               onClick={() => setSelectedType('all')}
               className={cn(
-                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
-                selectedType === 'all' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
+                selectedType === 'all' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
               )}
             >
-              Todos
+              All
             </button>
             <button
               onClick={() => setSelectedType('image')}
               className={cn(
-                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                selectedType === 'image' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2",
+                selectedType === 'image' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
               )}
             >
               <ImageIcon size={12} />
-              Imagens
+              Images
             </button>
             <button
               onClick={() => setSelectedType('video')}
               className={cn(
-                "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                selectedType === 'video' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2",
+                selectedType === 'video' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
               )}
             >
               <Video size={12} />
-              Vídeos
+              Videos
             </button>
           </div>
 
@@ -248,17 +248,17 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95",
+                "px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 active:scale-95",
                 selectedCategory === cat 
-                  ? "bg-black text-white shadow-lg" 
-                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-black text-white shadow-xl shadow-black/10" 
+                  : "bg-white/80 text-slate-500 border border-slate-200/50 hover:bg-white hover:text-black"
               )}
             >
               {cat}
             </button>
           ))}
           {isAdmin && (
-            <Button 
+            <button 
               onClick={() => {
                 setEditingItem(null);
                 setForm({
@@ -274,56 +274,52 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 });
                 setIsModalOpen(true);
               }}
-              className="bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-100 rounded-full px-6 py-2 flex items-center gap-2 ml-2 shadow-sm"
+              className="bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500 hover:text-white rounded-full px-6 py-2.5 flex items-center gap-2 ml-2 transition-all duration-300 group shadow-sm"
             >
-              <Plus size={16} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Novo Prompt</span>
-            </Button>
+              <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">New Prompt</span>
+            </button>
           )}
         </div>
       </div>
 
       {/* Grid */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
-          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Carregando Biblioteca...</p>
+        <div className="flex flex-col items-center justify-center h-96">
+          <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-6 opacity-50" />
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">Initializing Library...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item) => (
               <motion.div
                 key={item.id}
                 layout
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
-                <GlassCard className="group overflow-hidden border-slate-200 bg-white rounded-[32px] shadow-xl flex flex-col h-full hover:shadow-2xl transition-all duration-500">
+                <GlassCard className="group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl rounded-[32px] shadow-2xl flex flex-col h-full hover:shadow-black/5 transition-all duration-700 border border-slate-200/50">
                   {/* Image Comparison */}
-                  <div className="aspect-[9/16] relative overflow-hidden">
+                  <div className="aspect-[3/4] relative overflow-hidden">
                     <ImageComparisonSlider
                       imageBefore={item.image_before_url}
                       imageAfter={item.image_after_url}
-                      beforeLabel="Antes"
-                      afterLabel="Depois"
+                      beforeLabel="Original"
+                      afterLabel="Render"
                       className="h-full w-full rounded-none border-0"
                     />
-                  <div className="absolute top-4 left-4 z-10 flex gap-2">
-                    <Badge className="bg-white/80 backdrop-blur-md border-slate-200 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
-                      {item.category}
-                    </Badge>
-                    <Badge className={cn(
-                      "backdrop-blur-md border-transparent text-white text-[10px] font-bold uppercase tracking-widest",
-                      item.type === 'video' ? "bg-blue-600/80" : "bg-emerald-600/80"
-                    )}>
-                      {item.type === 'video' ? 'Vídeo' : 'Imagem'}
-                    </Badge>
-                  </div>
+                    
+                    <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
+                      <Badge className="bg-black/20 backdrop-blur-xl border-white/10 text-white/70 text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1">
+                        {item.category}
+                      </Badge>
+                    </div>
+
                     {isAdmin && (
-                      <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-6 right-6 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
                         <button 
                           onClick={() => {
                             setEditingItem(item);
@@ -340,13 +336,13 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                             });
                             setIsModalOpen(true);
                           }}
-                          className="p-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-lg text-slate-600 hover:text-blue-600 transition-colors"
+                          className="p-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl text-white/70 hover:text-white hover:bg-white/20 transition-all"
                         >
                           <Edit size={14} />
                         </button>
                         <button 
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 bg-white/80 backdrop-blur-md border border-red-100 rounded-lg text-red-500 hover:text-red-600 transition-colors"
+                          className="p-2.5 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -355,35 +351,67 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-base font-bold text-slate-900 mb-2 tracking-tight line-clamp-1 uppercase tracking-widest">{item.name}</h3>
-                    <div className="relative flex-1">
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-500 font-medium leading-relaxed max-h-[100px] overflow-y-auto custom-scrollbar">
-                        {item.prompt_text}
-                      </div>
+                  <div className="p-8 flex flex-col flex-1 bg-white/40 backdrop-blur-md">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-lg font-medium text-slate-900 tracking-tight line-clamp-1 uppercase tracking-[0.1em]">{item.name}</h3>
+                      <div className={cn(
+                        "w-2 h-2 rounded-full mt-2",
+                        item.type === 'video' ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                      )} />
+                    </div>
+
+                    {/* Technical Tags */}
+                    <div className="flex flex-wrap gap-2 mb-8">
+                      {['V-Ray Style', '8K Resolution', 'Photorealistic', 'Global Illumination'].map((tag) => (
+                        <span key={tag} className="text-[9px] font-light uppercase tracking-widest text-slate-400 border border-slate-200/50 px-2 py-0.5 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                     
-                    <div className="mt-4 flex gap-2">
-                      <Button 
+                    <div className="mt-auto flex gap-3">
+                      <button 
                         onClick={() => handleCopyPrompt(item.prompt_text, item.id)}
                         className={cn(
-                          "flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2",
+                          "flex-1 h-12 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 group relative overflow-hidden",
                           copiedId === item.id 
                             ? "bg-emerald-500 text-white" 
-                            : "bg-black text-white hover:bg-slate-900"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-black"
                         )}
                       >
-                        {copiedId === item.id ? <Check size={14} /> : <Copy size={14} />}
-                        {copiedId === item.id ? 'Copiado!' : 'Copiar Prompt'}
-                      </Button>
+                        <AnimatePresence mode="wait">
+                          {copiedId === item.id ? (
+                            <motion.div
+                              key="check"
+                              initial={{ scale: 0, rotate: -45 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0 }}
+                              className="flex items-center gap-2"
+                            >
+                              <Check size={16} />
+                              <span>Copied!</span>
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="copy"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex items-center gap-2"
+                            >
+                              <Copy size={14} className="group-hover:scale-110 transition-transform" />
+                              <span>Copy Prompt</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
 
                       {item.tutorial_url && (
                         <button
                           onClick={() => setActiveVideo(item.tutorial_url || null)}
-                          title="Ver Tutorial"
-                          className="w-10 h-10 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-all group/btn"
+                          className="w-12 h-12 rounded-2xl border border-slate-200/50 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 group/btn"
                         >
-                          <Play size={14} className="group-hover/btn:scale-110 transition-transform" />
+                          <Play size={16} className="fill-current group-hover/btn:scale-110 transition-transform" />
                         </button>
                       )}
                     </div>
@@ -535,6 +563,16 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Prompt Neural</label>
+                  <textarea
+                    value={form.prompt_text}
+                    onChange={e => setForm({ ...form, prompt_text: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 font-medium min-h-[120px] resize-none"
+                    placeholder="Cole aqui o prompt neural utilizado..."
+                  />
                 </div>
 
                 <Button 

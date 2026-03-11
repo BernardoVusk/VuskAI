@@ -19,16 +19,16 @@ export const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
   className
 }) => {
   return (
-    <div className={cn("relative rounded-2xl overflow-hidden border border-white/10 group", className)}>
+    <div className={cn("relative rounded-[24px] overflow-hidden border border-white/5 group", className)}>
       <ReactCompareSlider
         itemOne={<ReactCompareSliderImage src={imageBefore} alt="Before" />}
         itemTwo={<ReactCompareSliderImage src={imageAfter} alt="After" />}
         handle={
-          <div className="h-full w-0.5 bg-emerald-500 relative flex items-center justify-center">
-            <div className="absolute w-10 h-10 rounded-full bg-black border border-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-              <div className="flex items-center gap-0.5 text-emerald-500">
-                <ChevronLeft size={14} />
-                <ChevronRight size={14} />
+          <div className="h-full w-[0.5px] bg-white/30 relative flex items-center justify-center">
+            <div className="absolute w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110">
+              <div className="flex items-center gap-0.5 text-white/70">
+                <ChevronLeft size={12} />
+                <ChevronRight size={12} />
               </div>
             </div>
           </div>
@@ -38,12 +38,12 @@ export const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
       
       {/* Labels */}
       <div className="absolute top-4 left-4 z-10">
-        <span className="px-2 py-1 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-[10px] uppercase tracking-widest font-mono text-slate-400">
+        <span className="px-3 py-1 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-[9px] uppercase tracking-[0.2em] font-bold text-white/50">
           {beforeLabel}
         </span>
       </div>
       <div className="absolute top-4 right-4 z-10">
-        <span className="px-2 py-1 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-[10px] uppercase tracking-widest font-mono text-emerald-400">
+        <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[9px] uppercase tracking-[0.2em] font-bold text-white">
           {afterLabel}
         </span>
       </div>
