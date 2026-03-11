@@ -10,7 +10,8 @@ import {
   Unlock,
   LucideIcon,
   Shield,
-  Key
+  Key,
+  LogOut
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnalysisMode, UserSubscriptions } from '../../types';
@@ -22,6 +23,7 @@ interface SidebarProps {
   subscriptions: UserSubscriptions;
   onUnlockRequest: (mode: AnalysisMode) => void;
   onAdminClick?: () => void;
+  onLogout?: () => void;
   isAdmin?: boolean;
 }
 
@@ -31,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   subscriptions,
   onUnlockRequest,
   onAdminClick,
+  onLogout,
   isAdmin = false
 }) => {
   const menuItems = [
@@ -128,6 +131,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Processamento em tempo real ativo.
             </div>
           </div>
+
+          {onLogout && (
+            <button 
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group active:scale-95"
+            >
+              <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
+              <span className="text-xs font-bold uppercase tracking-widest">Sair da Conta</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -47,8 +47,7 @@ const processQueue = async () => {
       .maybeSingle();
 
     if (fetchError || !job) {
-      // Se não há jobs, espera o intervalo mínimo e tenta de novo
-      setTimeout(processQueue, 2000);
+      // Se não há jobs, apenas retorna. O finally cuidará de agendar a próxima execução.
       return;
     }
 

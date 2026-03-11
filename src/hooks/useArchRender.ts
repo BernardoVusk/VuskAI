@@ -111,7 +111,29 @@ export const useArchRender = () => {
         }
       }
 
-      // 2. Merge with Local Storage
+      // 2. Grant full access to admins
+      const isAdmin = state.user?.email === 'bernardomorais28@yahoo.com' || 
+                      state.user?.email === 'espetoclips@gmail.com' || 
+                      state.user?.user_metadata?.role === 'admin';
+      
+      if (isAdmin) {
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 10);
+        const proSub = {
+          isActive: true,
+          plan: PlanType.PRO_30_DAYS,
+          startDate: new Date().toISOString(),
+          expiresAt: farFuture.toISOString(),
+        };
+        
+        Object.values(AnalysisMode).forEach(m => {
+          if (m !== AnalysisMode.ADMIN_KEYS) {
+            subs[m as AnalysisMode] = proSub;
+          }
+        });
+      }
+
+      // 3. Merge with Local Storage
       // If logged in, we ONLY trust the database to prevent inheritance from other sessions
       const mergedSubs = userId ? subs : getLocalSubscriptions();
 

@@ -23,7 +23,16 @@ import {
   BookOpen,
   Terminal,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Sun,
+  SunMedium,
+  Sunrise,
+  Cloud,
+  CloudFog,
+  Moon,
+  Snowflake,
+  CloudRain,
+  Rainbow
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -63,6 +72,7 @@ const ArchRender = () => {
     handleRefinePrompt,
     isRefining,
     isAdmin,
+    logout,
     clearImage
   } = useArchRender();
 
@@ -136,6 +146,19 @@ const ArchRender = () => {
     }
   ];
 
+  const weatherPresets = [
+    { id: 'sunset', name: "Pôr do Sol", prompt: "Golden hour, sunset lighting, warm orange glow, long shadows", icon: Sun },
+    { id: 'midday', name: "Meio-dia", prompt: "Bright midday sun, create blue sky, high contrast, sharp shadows", icon: SunMedium },
+    { id: 'sunrise', name: "Nascer do Sol", prompt: "Sunrise light, soft morning atmosphere, cool blue and pink tones", icon: Sunrise },
+    { id: 'cloudy', name: "Nublado", prompt: "Overcast sky, soft diffused lighting, moody grey clouds", icon: Cloud },
+    { id: 'foggy', name: "Neblina", prompt: "Dense fog, misty atmosphere, ethereal lighting, low visibility", icon: CloudFog },
+    { id: 'night', name: "Noite", prompt: "Night scene, deep blue sky, artificial lighting, glowing windows", icon: Moon },
+    { id: 'snow', name: "Neve", prompt: "Snowing, winter atmosphere, white landscape, cold lighting", icon: Snowflake },
+    { id: 'rain', name: "Chuva", prompt: "Raining, wet surfaces, reflections, moody atmosphere", icon: CloudRain },
+    { id: 'after_rain', name: "Pós-Chuva", prompt: "After the rain, rainbow in the sky, wet asphalt, fresh atmosphere", icon: Rainbow },
+    { id: 'storm', name: "Tempestade", prompt: "Stormy weather, lightning flashes, dark dramatic sky, heavy rain", icon: Zap },
+  ];
+
   const handleRefine = async () => {
     if (!refinementText.trim()) return;
     await handleRefinePrompt(refinementText);
@@ -184,6 +207,7 @@ const ArchRender = () => {
           onModeChange={handleModeChange}
           subscriptions={subscriptions}
           onUnlockRequest={handleUnlockRequest}
+          onLogout={logout}
           isAdmin={isAdmin}
         />
       </div>
@@ -198,6 +222,7 @@ const ArchRender = () => {
           onModeChange={handleModeChange}
           subscriptions={subscriptions}
           onUnlockRequest={handleUnlockRequest}
+          onLogout={logout}
           isAdmin={isAdmin}
         />
       </div>
@@ -716,6 +741,33 @@ const ArchRender = () => {
                                         </motion.div>
                                       )}
                                     </AnimatePresence>
+                                  </div>
+                                </div>
+
+                                {/* Weather & Time Presets Section */}
+                                <div className="p-6 rounded-[32px] bg-slate-50/50 border border-slate-200/60 backdrop-blur-sm">
+                                  <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                                      <Cloud size={18} className="text-slate-600" />
+                                    </div>
+                                    <div>
+                                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 leading-none mb-1">Clima_e_Horário</div>
+                                      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">Ajuste a atmosfera da cena</div>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                    {weatherPresets.map((preset) => (
+                                      <button
+                                        key={preset.id}
+                                        onClick={() => handleRefinePrompt(`Mude o clima/horário para: ${preset.prompt}`)}
+                                        disabled={isRefining}
+                                        className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-white border border-slate-200/50 hover:border-blue-500/30 hover:bg-blue-50/50 transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                      >
+                                        <preset.icon size={18} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-900 transition-colors text-center">{preset.name}</span>
+                                      </button>
+                                    ))}
                                   </div>
                                 </div>
 

@@ -30,7 +30,9 @@ import {
   CloudFog,
   Moon,
   Snowflake,
-  CloudRain
+  CloudRain,
+  Rainbow,
+  SunMedium
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -182,12 +184,14 @@ const VuskAI = () => {
 
   const weatherPresets = [
     { id: 'sunset', name: "Pôr do Sol", prompt: "Golden hour, sunset lighting, warm orange glow, long shadows", icon: Sun },
+    { id: 'midday', name: "Meio-dia", prompt: "Bright midday sun, clear blue sky, high contrast, sharp shadows", icon: SunMedium },
     { id: 'sunrise', name: "Nascer do Sol", prompt: "Sunrise light, soft morning atmosphere, cool blue and pink tones", icon: Sunrise },
     { id: 'cloudy', name: "Nublado", prompt: "Overcast sky, soft diffused lighting, moody grey clouds", icon: Cloud },
     { id: 'foggy', name: "Neblina", prompt: "Dense fog, misty atmosphere, ethereal lighting, low visibility", icon: CloudFog },
     { id: 'night', name: "Noite", prompt: "Night scene, deep blue sky, artificial lighting, glowing windows", icon: Moon },
     { id: 'snow', name: "Neve", prompt: "Snowing, winter atmosphere, white landscape, cold lighting", icon: Snowflake },
     { id: 'rain', name: "Chuva", prompt: "Raining, wet surfaces, reflections, moody atmosphere", icon: CloudRain },
+    { id: 'after_rain', name: "Pós-Chuva", prompt: "After the rain, rainbow in the sky, wet asphalt, fresh atmosphere", icon: Rainbow },
     { id: 'storm', name: "Tempestade", prompt: "Stormy weather, lightning flashes, dark dramatic sky, heavy rain", icon: Zap },
   ];
 
@@ -801,7 +805,7 @@ const VuskAI = () => {
                                     </div>
                                   </div>
 
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                     {weatherPresets.map((preset) => (
                                       <button
                                         key={preset.id}
@@ -810,7 +814,7 @@ const VuskAI = () => {
                                         className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                       >
                                         <preset.icon size={18} className="text-slate-400 group-hover:text-violet-400 transition-colors" />
-                                        <span className="text-[10px] font-medium text-slate-400 group-hover:text-white transition-colors">{preset.name}</span>
+                                        <span className="text-[10px] font-medium text-slate-400 group-hover:text-white transition-colors text-center">{preset.name}</span>
                                       </button>
                                     ))}
                                   </div>
