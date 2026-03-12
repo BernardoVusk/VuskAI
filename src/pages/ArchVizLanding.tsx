@@ -351,7 +351,7 @@ const ArchVizLanding = () => {
               <a href="#oferta" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Oferta</a>
               <button 
                 onClick={() => { 
-                  document.getElementById('ferramentas')?.scrollIntoView({ behavior: 'smooth' });
+                  handleSubscribe('annual');
                   setIsMobileMenuOpen(false); 
                 }}
                 className="bg-black text-white px-10 py-4 rounded-2xl text-lg mt-6 shadow-xl shadow-black/10"
@@ -387,7 +387,7 @@ const ArchVizLanding = () => {
 
           <div className="hero-cta flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
             <button 
-              onClick={() => document.getElementById('ferramentas')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => handleSubscribe('annual')}
               className="w-full sm:w-auto bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-black/10 text-center"
             >
               Começar agora
