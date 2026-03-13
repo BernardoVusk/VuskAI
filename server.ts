@@ -130,10 +130,16 @@ const processQueue = async () => {
 processQueue();
 
 // Middleware for raw body parsing (needed for Stripe webhook verification)
-app.use('/api/webhook', express.raw({ type: 'application/json' }));
+// Use a more permissive type to ensure we capture the body even if content-type varies slightly
+app.use('/api/webhook', express.raw({ type: '*/*' }));
 
 // Standard middleware for other routes
 app.use(cors());
+
+// Diagnostic route to check if webhook endpoint is reachable
+app.get('/api/webhook', (req, res) => {
+  res.send('Webhook endpoint is active. Use POST for Stripe events.');
+});
 
 // Only serve static files if not in Netlify
 if (!process.env.NETLIFY) {
@@ -338,37 +344,33 @@ app.post("/api/generate-queue", async (req, res) => {
 
   // Stripe Webhook Endpoint
   app.post('/api/webhook', async (req, res) => {
-    console.log('[Webhook] Recebido evento do Stripe');
-    
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('[Webhook] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing. Admin operations will fail.');
-    }
-
-    const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    let event: Stripe.Event;
-    let body = req.body;
-
-    // Handle raw body in serverless environments (Netlify)
-    if (process.env.NETLIFY && req.body && Buffer.isBuffer(req.body)) {
-      body = req.body;
-    } else if (process.env.NETLIFY && (req as any).rawBody) {
-      body = (req as any).rawBody;
-    }
-
     try {
+      console.log('[Webhook] Recebido evento POST do Stripe');
+      
+      const sig = req.headers['stripe-signature'];
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
       if (!sig || !endpointSecret) {
-        throw new Error('Missing Stripe signature or webhook secret');
+        console.error('[Webhook] Erro: Assinatura ou Secret ausentes');
+        return res.status(400).send('Webhook Error: Missing signature or secret');
       }
-      event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
-    } catch (err: any) {
-      console.error(`Webhook Error: ${err.message}`);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
 
-    // Handle the event
-    try {
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('[Webhook] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing.');
+      }
+
+      let event: Stripe.Event;
+      try {
+        // req.body is a Buffer because of express.raw middleware
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      } catch (err: any) {
+        console.error(`[Webhook] Erro na validação da assinatura: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
+
+      console.log(`[Webhook] Evento validado: ${event.type}`);
+
+      // Handle the event
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
@@ -385,8 +387,8 @@ app.post("/api/generate-queue", async (req, res) => {
           // 1. Find or Create User
           let targetUserId: string | null = null;
 
-          // Check if user exists in profiles (which mirrors auth.users)
-          const { data: existingProfile, error: profileError } = await supabase
+          // Check if user exists in profiles
+          const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
             .eq('email', userEmail)
@@ -394,41 +396,20 @@ app.post("/api/generate-queue", async (req, res) => {
 
           if (existingProfile) {
             targetUserId = existingProfile.id;
-            console.log(`[Webhook] Usuário existente encontrado no perfil: ${targetUserId}`);
+            console.log(`[Webhook] Usuário existente: ${targetUserId}`);
           } else {
-            // Check if user exists in auth.users but not in profiles
             console.log(`[Webhook] Perfil não encontrado para ${userEmail}. Verificando Auth...`);
             
-            // Try to find user in Auth directly to be sure
-            const { data: userData, error: listError } = await supabase.auth.admin.listUsers();
-            if (listError) {
-              console.error('[Webhook] Erro ao listar usuários do Auth:', listError.message);
-            }
-            
+            const { data: userData } = await supabase.auth.admin.listUsers();
             const existingAuthUser = (userData?.users as any[])?.find((u: any) => u.email?.toLowerCase() === userEmail.toLowerCase());
             
             if (existingAuthUser) {
               targetUserId = existingAuthUser.id;
-              console.log(`[Webhook] Usuário encontrado no Auth: ${targetUserId}. Criando perfil manual...`);
-              
-              // Create profile manually if it doesn't exist
-              const { error: createProfileError } = await supabase
-                .from('profiles')
-                .upsert({
-                  id: targetUserId,
-                  email: userEmail,
-                  full_name: session.customer_details?.name || 'Cliente ArchRender'
-                });
-              
-              if (createProfileError) {
-                console.error('[Webhook] Erro ao criar perfil manual:', createProfileError.message);
-              }
+              console.log(`[Webhook] Usuário encontrado no Auth: ${targetUserId}`);
             } else {
-              console.log(`[Webhook] Usuário não encontrado no Auth. Enviando convite...`);
-              
-              // We use inviteUserByEmail which also handles the email sending
+              console.log(`[Webhook] Enviando convite para: ${userEmail}`);
               const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(userEmail, {
-                redirectTo: `${process.env.APP_URL || 'https://archrender.ai'}/#type=invite`,
+                redirectTo: `${process.env.APP_URL || 'https://archrenderai.com'}/#type=invite`,
                 data: { 
                   full_name: session.customer_details?.name || 'Cliente ArchRender',
                   source: 'stripe_checkout'
@@ -436,9 +417,7 @@ app.post("/api/generate-queue", async (req, res) => {
               });
 
               if (inviteError) {
-                console.error('[Webhook] Erro ao convidar usuário:', inviteError.message);
-                // Fallback: try to create user without invite if invite fails for some reason
-                console.log('[Webhook] Tentando criação direta como fallback...');
+                console.error('[Webhook] Erro ao convidar, tentando criação direta...');
                 const { data: createData, error: createError } = await supabase.auth.admin.createUser({
                   email: userEmail,
                   email_confirm: true,
@@ -449,40 +428,31 @@ app.post("/api/generate-queue", async (req, res) => {
                 });
                 
                 if (createError) {
-                  console.error('[Webhook] Erro crítico: Falha em todos os métodos de criação de usuário:', createError.message);
-                  break;
+                  console.error('[Webhook] Falha total na criação:', createError.message);
                 } else if (createData?.user) {
                   targetUserId = createData.user.id;
-                  console.log(`[Webhook] Usuário criado via fallback: ${targetUserId}`);
                 }
               } else if (inviteData?.user) {
                 targetUserId = inviteData.user.id;
-                console.log(`[Webhook] Convite enviado com sucesso. ID: ${targetUserId}`);
               }
             }
           }
 
           if (targetUserId) {
-            // Small delay to ensure the trigger or manual upsert has finished
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
             const tab = (metadata.tab || 'architecture').toLowerCase();
-            
-            // Determine duration (Default to 365 for this specific product or check metadata)
-            let durationDays = 365; // Default to 1 year for the main offer
-            
+            let durationDays = 365; 
             if (metadata.duration_days) {
               durationDays = parseInt(metadata.duration_days, 10);
             }
 
             const now = new Date();
-            const newExpiryDate = new Date(now.getTime() + (durationDays + 2) * 24 * 60 * 60 * 1000); // +2 days grace
+            const newExpiryDate = new Date(now.getTime() + (durationDays + 2) * 24 * 60 * 60 * 1000);
 
             const updates: any = {};
             const field = `${tab}_expiry`;
             updates[field] = newExpiryDate.toISOString();
 
-            console.log(`[Webhook] Atualizando expiração para ${field}: ${newExpiryDate.toISOString()}`);
+            console.log(`[Webhook] Atualizando ${field} para ${targetUserId}`);
 
             const { error: updateError } = await supabase
               .from('profiles')
@@ -490,24 +460,13 @@ app.post("/api/generate-queue", async (req, res) => {
               .eq('id', targetUserId);
 
             if (updateError) {
-              console.error(`[Webhook] Error updating profile for ${targetUserId}:`, updateError.message);
-              
-              // Try upsert if update failed (maybe profile still doesn't exist)
-              const { error: upsertError } = await supabase
-                .from('profiles')
-                .upsert({
-                  id: targetUserId,
-                  email: userEmail,
-                  ...updates
-                });
-              
-              if (upsertError) {
-                console.error(`[Webhook] Critical: Upsert also failed for ${targetUserId}:`, upsertError.message);
-              } else {
-                console.log(`[Webhook] Profile upserted successfully for ${targetUserId}`);
-              }
-            } else {
-              console.log(`[Webhook] Successfully updated ${field} for user ${targetUserId}`);
+              // Upsert fallback
+              await supabase.from('profiles').upsert({
+                id: targetUserId,
+                email: userEmail,
+                full_name: session.customer_details?.name || 'Cliente ArchRender',
+                ...updates
+              });
             }
           }
           break;
@@ -522,26 +481,19 @@ app.post("/api/generate-queue", async (req, res) => {
 
             if (userId) {
               const now = new Date();
-              
-              // Determine renewal duration based on subscription items
-              let renewalDays = 32; // Default for monthly
+              let renewalDays = 32; 
               const isYearly = subscription.items.data.some(item => 
                 item.price?.product === 'prod_U5PrqVddXPhYpA' || 
                 (typeof item.price?.product === 'object' && item.price?.product?.id === 'prod_U5PrqVddXPhYpA')
               );
               
-              if (isYearly) {
-                renewalDays = 367; // 1 year + grace period
-              }
+              if (isYearly) renewalDays = 367;
 
               const newExpiryDate = new Date(now.getTime() + renewalDays * 24 * 60 * 60 * 1000);
-              
               const updates: any = {};
-              const field = `${tab}_expiry`;
-              updates[field] = newExpiryDate.toISOString();
+              updates[`${tab}_expiry`] = newExpiryDate.toISOString();
 
               await supabase.from('profiles').update(updates).eq('id', userId);
-              console.log(`Renewal: Updated ${field} for user ${userId} with ${renewalDays} days`);
             }
           }
           break;
@@ -554,26 +506,19 @@ app.post("/api/generate-queue", async (req, res) => {
 
           if (userId) {
             const updates: any = {};
-            const field = `${tab}_expiry`;
-            // Set expiry to past to block access
-            updates[field] = new Date(0).toISOString();
-
+            updates[`${tab}_expiry`] = new Date(0).toISOString();
             await supabase.from('profiles').update(updates).eq('id', userId);
-            console.log(`Cancelled: Revoked ${field} for user ${userId}`);
           }
           break;
         }
-
-        default:
-          console.log(`Unhandled event type ${event.type}`);
       }
-    } catch (err: any) {
-      console.error('Error processing webhook event:', err);
-      return res.status(500).send('Internal Server Error');
-    }
 
-  res.json({ received: true });
-});
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error('[Webhook] Erro inesperado:', err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 
 // Vite middleware for development (only if not in Netlify/Production)
 if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
@@ -599,10 +544,8 @@ if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
 // Export the app for serverless functions
 export default app;
 
-// Only listen if running directly (not as a function)
-if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
+// Start server
+const PORT = Number(process.env.PORT) || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
