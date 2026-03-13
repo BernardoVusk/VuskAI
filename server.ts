@@ -422,7 +422,7 @@ app.post("/api/generate-queue", async (req, res) => {
             } else {
               console.log(`[Webhook] Enviando convite para: ${userEmail}`);
               const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(userEmail, {
-                redirectTo: `${process.env.APP_URL || 'https://archrenderai.com'}/#type=invite`,
+                redirectTo: `${process.env.APP_URL || 'https://archrenderai.com'}/?type=invite`,
                 data: { 
                   full_name: session.customer_details?.name || 'Cliente ArchRender',
                   source: 'stripe_checkout'

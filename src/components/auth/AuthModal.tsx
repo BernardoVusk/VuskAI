@@ -23,19 +23,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   // Handle password update mode if we have a session but no password set (or from recovery)
   React.useEffect(() => {
-    const checkHash = () => {
+    const checkAuthStatus = async () => {
       const hash = window.location.hash;
-      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) {
+      const search = window.location.search;
+      const isAuthFlow = (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) ||
+                        (search && (search.includes('type=invite') || search.includes('type=recovery') || search.includes('type=signup')));
+      
+      if (isAuthFlow) {
         setMode('update_password');
+        // Ensure Supabase has processed the hash/token
+        await supabase.auth.getSession();
       }
     };
 
     if (isOpen) {
-      checkHash();
+      checkAuthStatus();
     }
     
-    window.addEventListener('hashchange', checkHash);
-    return () => window.removeEventListener('hashchange', checkHash);
+    window.addEventListener('hashchange', checkAuthStatus);
+    return () => window.removeEventListener('hashchange', checkAuthStatus);
   }, [isOpen]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -71,6 +77,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             setMode('login');
         }
       } else if (mode === 'update_password') {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          setError('Sessão de autenticação não encontrada. Isso pode acontecer se o link expirou ou se houve um erro ao processar o acesso. Por favor, tente clicar no link do e-mail novamente.');
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.updateUser({
           password: password
         });
@@ -104,7 +118,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/#type=recovery`,
+      redirectTo: `${window.location.origin}/?type=recovery`,
     });
     setLoading(false);
     if (error) {

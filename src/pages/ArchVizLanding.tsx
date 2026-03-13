@@ -163,19 +163,23 @@ const ArchVizLanding = () => {
       setUser(session?.user ?? null);
     });
 
-    const handleHash = () => {
+    const handleAuthFlow = () => {
       const hash = window.location.hash;
-      if (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) {
+      const search = window.location.search;
+      const isAuthFlow = (hash && (hash.includes('access_token') || hash.includes('type=invite') || hash.includes('type=recovery') || hash.includes('type=signup'))) ||
+                        (search && (search.includes('type=invite') || search.includes('type=recovery') || search.includes('type=signup')));
+      
+      if (isAuthFlow) {
         setTimeout(() => setIsAuthOpen(true), 500);
       }
     };
 
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
+    handleAuthFlow();
+    window.addEventListener('hashchange', handleAuthFlow);
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener('hashchange', handleHash);
+      window.removeEventListener('hashchange', handleAuthFlow);
     };
   }, []);
 
