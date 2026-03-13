@@ -19,7 +19,7 @@ import {
 import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { ImageComparisonSlider } from '../ui/ImageComparisonSlider';
 import { supabase } from '../../lib/supabaseClient';
-import { NeuralLibraryItem } from '../../types';
+import { NeuralLibraryItem, AnalysisMode } from '../../types';
 import { Button } from '../ui/Button';
 import { GlassCard } from '../ui/GlassCard';
 import { Badge } from '../ui/Badge';
@@ -27,9 +27,10 @@ import { cn } from '../../lib/utils';
 
 interface LibraryProps {
   isAdmin: boolean;
+  mode: AnalysisMode;
 }
 
-export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
+export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
   const [items, setItems] = useState<NeuralLibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,11 +57,13 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
     video_url: ''
   });
 
-  const categories = ['Todos', 'Interior Luxo', 'Fachada Moderna', 'Paisagismo', 'Comercial', 'Urbanismo'];
+  const categories = mode === AnalysisMode.ARCHITECTURE 
+    ? ['Todos', 'Interior Luxo', 'Fachada Moderna', 'Paisagismo', 'Comercial', 'Urbanismo']
+    : ['Todos', 'Retrato Realista', 'Estilo Editorial', 'Cinematográfico', 'Fashion', 'Avatar'];
 
   useEffect(() => {
     fetchLibrary();
-  }, []);
+  }, [mode]);
 
   const fetchLibrary = async () => {
     setLoading(true);
@@ -68,6 +71,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
       const { data, error } = await supabase
         .from('neural_library')
         .select('*')
+        .eq('mode', mode)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -139,6 +143,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
         prompt_text: form.prompt_text,
         category: form.category,
         type: form.type,
+        mode: mode,
         tutorial_url: form.tutorial_url,
         image_before_url: beforeUrl || '',
         image_after_url: form.type === 'image' ? (afterUrl || '') : '',
@@ -282,7 +287,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 setForm({
                   name: '',
                   prompt_text: '',
-                  category: 'Interior Luxo',
+                  category: categories[1],
                   type: 'image',
                   tutorial_url: '',
                   image_before: null,
@@ -613,15 +618,15 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Categoria</label>
-                    <select
-                      value={form.category}
-                      onChange={e => setForm({ ...form, category: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
-                    >
-                      {categories.filter(c => c !== 'Todos').map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
+                      <select
+                        value={form.category}
+                        onChange={e => setForm({ ...form, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
+                      >
+                        {categories.filter(c => c !== 'Todos').map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">URL do Tutorial (YouTube)</label>

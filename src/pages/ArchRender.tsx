@@ -81,6 +81,7 @@ const ArchRender = () => {
   const [selectedVideoStyle, setSelectedVideoStyle] = useState('');
   const [refinementText, setRefinementText] = useState('');
   const [archVizSubTab, setArchVizSubTab] = useState<'ai' | 'prompts' | 'aulas'>('ai');
+  const [identitySubTab, setIdentitySubTab] = useState<'ai' | 'prompts'>('ai');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -280,10 +281,62 @@ const ArchRender = () => {
         )}
       </AnimatePresence>
 
+      {/* Identity Secondary Sidebar */}
+      <AnimatePresence>
+        {mode === AnalysisMode.IDENTITY && (
+          <motion.div
+            key="identity-nav"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="hidden lg:flex fixed left-[280px] top-6 bottom-6 w-[220px] z-40 flex-col border border-slate-200 bg-white/80 backdrop-blur-3xl p-6 rounded-[32px] shadow-2xl"
+          >
+            <div className="mb-10 px-2">
+              <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500">Ferramentas</div>
+            </div>
+            
+            <div className="space-y-3">
+              {[
+                { id: 'ai', label: 'Gerador AI', icon: Terminal },
+                { id: 'prompts', label: 'Biblioteca', icon: Layout },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setIdentitySubTab(item.id as any)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden active:scale-[0.98]",
+                    identitySubTab === item.id 
+                      ? "bg-black text-white shadow-xl" 
+                      : "text-slate-500 hover:text-black hover:bg-slate-50"
+                  )}
+                >
+                  <item.icon 
+                    size={18} 
+                    className={cn(
+                      "transition-transform duration-500 group-hover:scale-110",
+                      identitySubTab === item.id ? "text-white" : "text-slate-400 group-hover:text-blue-500"
+                    )} 
+                  />
+                  <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                  
+                  {identitySubTab === item.id && (
+                    <motion.div
+                      layoutId="identity-subtab-pill"
+                      className="absolute inset-0 bg-black -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Content Area */}
       <main className={cn(
         "flex-1 p-4 md:p-8 pt-24 md:pt-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8",
-        mode === AnalysisMode.ARCHITECTURE ? "lg:ml-[520px]" : "lg:ml-[280px]"
+        (mode === AnalysisMode.ARCHITECTURE || mode === AnalysisMode.IDENTITY) ? "lg:ml-[520px]" : "lg:ml-[280px]"
       )}>
         
         {/* Header - Editorial Style */}
@@ -306,6 +359,8 @@ const ArchRender = () => {
             <h1 className="text-5xl sm:text-6xl md:text-fluid-9xl font-black tracking-tighter leading-[0.85] text-slate-900 uppercase">
               {mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' 
                 ? archVizSubTab
+                : mode === AnalysisMode.IDENTITY && identitySubTab !== 'ai'
+                ? identitySubTab
                 : mode.split('_')[0]}
               <span className="block text-blue-600 opacity-20">Engine_v3</span>
             </h1>
@@ -365,6 +420,30 @@ const ArchRender = () => {
           </div>
         )}
 
+        {/* Mobile Sub-tab Switcher for Identity */}
+        {mode === AnalysisMode.IDENTITY && (
+          <div className="lg:hidden flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+            {[
+              { id: 'ai', label: 'Gerador AI', icon: Terminal },
+              { id: 'prompts', label: 'Biblioteca', icon: Layout },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setIdentitySubTab(item.id as any)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap active:scale-95",
+                  identitySubTab === item.id 
+                    ? "bg-black text-white border-black" 
+                    : "bg-white text-slate-500 border-slate-200"
+                )}
+              >
+                <item.icon size={14} />
+                <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Content Grid */}
         <div className="relative flex-1 flex flex-col">
           {/* Content Wrapper */}
@@ -396,8 +475,8 @@ const ArchRender = () => {
                 </div>
               </GlassCard>
             </motion.div>
-          ) : mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' ? (
-            archVizSubTab === 'aulas' ? (
+          ) : (mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai') || (mode === AnalysisMode.IDENTITY && identitySubTab !== 'ai') ? (
+            (mode === AnalysisMode.ARCHITECTURE && archVizSubTab === 'aulas') ? (
               <motion.div
                 key="academy"
                 initial={{ opacity: 0, y: 20 }}
@@ -415,7 +494,7 @@ const ArchRender = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="flex-1 flex flex-col"
               >
-                <Library isAdmin={isAdmin} />
+                <Library isAdmin={isAdmin} mode={mode} />
               </motion.div>
             )
           ) : (
