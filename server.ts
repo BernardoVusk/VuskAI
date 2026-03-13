@@ -34,7 +34,19 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+// Initialize Gemini AI lazily to prevent crash if key is missing
+let genAI: GoogleGenAI | null = null;
+const getGenAI = () => {
+  if (!genAI) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('[AI] Erro: GEMINI_API_KEY não configurada.');
+      throw new Error('API key must be set when using the Gemini API.');
+    }
+    genAI = new GoogleGenAI({ apiKey });
+  }
+  return genAI;
+};
 
 // --- CONFIGURAÇÃO DE FILA (14 REQ/MIN) ---
 const MAX_REQ_PER_MINUTE = 14;
@@ -90,7 +102,8 @@ const processQueue = async () => {
           promptConfig.contents[0].parts[0].text += `\nLink da imagem: ${job.input_image_url}`;
         }
 
-        const result = await genAI.models.generateContent(promptConfig);
+        const genAIInstance = getGenAI();
+        const result = await genAIInstance.models.generateContent(promptConfig);
         return result.text || "Erro: IA retornou resposta vazia.";
       } catch (err: any) {
         const isRetryable = err.status === 429 || err.status >= 500;
