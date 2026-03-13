@@ -11,7 +11,8 @@ import {
   LucideIcon,
   Shield,
   Key,
-  LogOut
+  LogOut,
+  Settings as SettingsIcon
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnalysisMode, UserSubscriptions } from '../../types';
@@ -42,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: AnalysisMode.CINEMATIC, label: 'Cinematográfico', icon: Film },
     { id: AnalysisMode.MARKETPLACE, label: 'Marketplace', icon: ShoppingBag },
     { id: AnalysisMode.ARCHITECTURE, label: 'Arquitetura', icon: Building2 },
+    { id: AnalysisMode.SETTINGS, label: 'Configurações', icon: SettingsIcon },
   ];
 
   if (isAdmin) {
@@ -67,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="flex-1 space-y-3">
           {menuItems.map((item) => {
-            const isLocked = item.id !== AnalysisMode.ADMIN_KEYS && !subscriptions[item.id as AnalysisMode]?.isActive;
+            const isLocked = item.id !== AnalysisMode.ADMIN_KEYS && item.id !== AnalysisMode.SETTINGS && !subscriptions[item.id as AnalysisMode]?.isActive;
             const isActive = currentMode === item.id;
             
             return (
@@ -92,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
                 </div>
                 
-                {item.id !== AnalysisMode.ADMIN_KEYS && (
+                {item.id !== AnalysisMode.ADMIN_KEYS && item.id !== AnalysisMode.SETTINGS && (
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();

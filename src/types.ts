@@ -11,6 +11,7 @@ export enum AnalysisMode {
   MARKETPLACE = 'MARKETPLACE',
   ARCHITECTURE = 'ARCHITECTURE',
   ADMIN_KEYS = 'ADMIN_KEYS',
+  SETTINGS = 'SETTINGS',
 }
 
 export interface AnalysisError {
@@ -86,7 +87,6 @@ export interface NeuralLibraryItem {
   video_url?: string;
   category: string;
   type: 'image' | 'video';
-  mode: 'ARCHITECTURE' | 'IDENTITY';
   tutorial_url?: string;
   created_at: string;
 }

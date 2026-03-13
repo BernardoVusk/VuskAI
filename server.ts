@@ -179,6 +179,45 @@ app.post("/api/generate-queue", async (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Admin: Update User Password
+  app.post('/api/admin/update-password', express.json(), async (req, res) => {
+    const { userId, newPassword, adminToken } = req.body;
+
+    if (!userId || !newPassword || !adminToken) {
+      return res.status(400).json({ error: 'User ID, password and admin token are required' });
+    }
+
+    try {
+      // Verify admin status using the provided token
+      const { data: { user }, error: authError } = await supabase.auth.getUser(adminToken);
+      
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const isAdmin = user.email === 'bernardomorais28@yahoo.com' || 
+                      user.email === 'espetoclips@gmail.com' || 
+                      user.user_metadata?.role === 'admin';
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Forbidden: Admin access required' });
+      }
+
+      // Update user password using admin API
+      const { error } = await supabase.auth.admin.updateUserById(
+        userId,
+        { password: newPassword }
+      );
+
+      if (error) throw error;
+
+      res.json({ message: 'Senha atualizada com sucesso!' });
+    } catch (err: any) {
+      console.error('Error updating password:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Create Checkout Session Endpoint
   app.post('/api/create-checkout-session', express.json(), async (req, res) => {
     const { plan, email, userId } = req.body;
@@ -301,11 +340,14 @@ app.post("/api/generate-queue", async (req, res) => {
 
           if (existingProfile) {
             targetUserId = existingProfile.id;
-            console.log(`Found existing user: ${targetUserId}`);
+            console.log(`[Webhook] Usuário existente encontrado no perfil: ${targetUserId}`);
           } else {
-            // Create new user via invitation
-            console.log(`User not found. Inviting: ${userEmail}`);
+            // Check if user exists in auth.users but not in profiles
+            console.log(`[Webhook] Perfil não encontrado para ${userEmail}. Verificando Auth...`);
+            
+            // We use inviteUserByEmail which also handles the email sending
             const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(userEmail, {
+              redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/#type=invite`,
               data: { 
                 full_name: session.customer_details?.name || 'Cliente ArchRender',
                 source: 'stripe_checkout'
@@ -313,18 +355,25 @@ app.post("/api/generate-queue", async (req, res) => {
             });
 
             if (inviteError) {
-              console.error('Error inviting user:', inviteError);
-              // Fallback: maybe they exist in auth but not profiles? 
-              // (Unlikely with trigger, but let's be safe)
-              break;
-            }
-
-            if (inviteData?.user) {
+              // If user already exists, inviteUserByEmail might fail. Let's try to get the user ID anyway.
+              if (inviteError.message.includes('already registered') || inviteError.status === 422) {
+                console.log(`[Webhook] Usuário já registrado no Auth. Tentando recuperar ID...`);
+                const { data: userData } = await supabase.auth.admin.listUsers();
+                const user = (userData?.users as any[])?.find((u: any) => u.email === userEmail);
+                if (user) {
+                  targetUserId = user.id;
+                  console.log(`[Webhook] ID recuperado do Auth: ${targetUserId}`);
+                }
+              } else {
+                console.error('[Webhook] Erro crítico ao convidar usuário:', inviteError.message);
+                break;
+              }
+            } else if (inviteData?.user) {
               targetUserId = inviteData.user.id;
-              console.log(`Invited new user: ${targetUserId}`);
+              console.log(`[Webhook] Novo convite enviado com sucesso para: ${targetUserId}`);
               
               // Small delay to ensure the trigger has finished creating the profile
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise(resolve => setTimeout(resolve, 1500));
             }
           }
 

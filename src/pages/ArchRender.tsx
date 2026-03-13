@@ -45,8 +45,10 @@ import { AnalysisMode, AppStatus } from '../types';
 import { KeyActivationModal } from '../components/ui/KeyActivationModal';
 import { Sidebar } from '../components/layout/Sidebar';
 import { KeyGenerator } from '../components/admin/KeyGenerator';
+import { UserManagement } from '../components/admin/UserManagement';
 import { Academy } from '../components/academy/Academy';
 import { Library } from '../components/library/Library';
+import { Settings } from '../components/auth/Settings';
 const LOGO_URL = "https://i.imgur.com/ptDOAO8.png";
 
 const ArchRender = () => {
@@ -81,7 +83,7 @@ const ArchRender = () => {
   const [selectedVideoStyle, setSelectedVideoStyle] = useState('');
   const [refinementText, setRefinementText] = useState('');
   const [archVizSubTab, setArchVizSubTab] = useState<'ai' | 'prompts' | 'aulas'>('ai');
-  const [identitySubTab, setIdentitySubTab] = useState<'ai' | 'prompts'>('ai');
+  const [adminSubTab, setAdminSubTab] = useState<'keys' | 'users'>('keys');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -281,62 +283,10 @@ const ArchRender = () => {
         )}
       </AnimatePresence>
 
-      {/* Identity Secondary Sidebar */}
-      <AnimatePresence>
-        {mode === AnalysisMode.IDENTITY && (
-          <motion.div
-            key="identity-nav"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="hidden lg:flex fixed left-[280px] top-6 bottom-6 w-[220px] z-40 flex-col border border-slate-200 bg-white/80 backdrop-blur-3xl p-6 rounded-[32px] shadow-2xl"
-          >
-            <div className="mb-10 px-2">
-              <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500">Ferramentas</div>
-            </div>
-            
-            <div className="space-y-3">
-              {[
-                { id: 'ai', label: 'Gerador AI', icon: Terminal },
-                { id: 'prompts', label: 'Biblioteca', icon: Layout },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setIdentitySubTab(item.id as any)}
-                  className={cn(
-                    "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden active:scale-[0.98]",
-                    identitySubTab === item.id 
-                      ? "bg-black text-white shadow-xl" 
-                      : "text-slate-500 hover:text-black hover:bg-slate-50"
-                  )}
-                >
-                  <item.icon 
-                    size={18} 
-                    className={cn(
-                      "transition-transform duration-500 group-hover:scale-110",
-                      identitySubTab === item.id ? "text-white" : "text-slate-400 group-hover:text-blue-500"
-                    )} 
-                  />
-                  <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
-                  
-                  {identitySubTab === item.id && (
-                    <motion.div
-                      layoutId="identity-subtab-pill"
-                      className="absolute inset-0 bg-black -z-10"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Main Content Area */}
       <main className={cn(
         "flex-1 p-4 md:p-8 pt-24 md:pt-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8",
-        (mode === AnalysisMode.ARCHITECTURE || mode === AnalysisMode.IDENTITY) ? "lg:ml-[520px]" : "lg:ml-[280px]"
+        mode === AnalysisMode.ARCHITECTURE ? "lg:ml-[520px]" : "lg:ml-[280px]"
       )}>
         
         {/* Header - Editorial Style */}
@@ -359,8 +309,6 @@ const ArchRender = () => {
             <h1 className="text-5xl sm:text-6xl md:text-fluid-9xl font-black tracking-tighter leading-[0.85] text-slate-900 uppercase">
               {mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' 
                 ? archVizSubTab
-                : mode === AnalysisMode.IDENTITY && identitySubTab !== 'ai'
-                ? identitySubTab
                 : mode.split('_')[0]}
               <span className="block text-blue-600 opacity-20">Engine_v3</span>
             </h1>
@@ -420,36 +368,12 @@ const ArchRender = () => {
           </div>
         )}
 
-        {/* Mobile Sub-tab Switcher for Identity */}
-        {mode === AnalysisMode.IDENTITY && (
-          <div className="lg:hidden flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
-            {[
-              { id: 'ai', label: 'Gerador AI', icon: Terminal },
-              { id: 'prompts', label: 'Biblioteca', icon: Layout },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setIdentitySubTab(item.id as any)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap active:scale-95",
-                  identitySubTab === item.id 
-                    ? "bg-black text-white border-black" 
-                    : "bg-white text-slate-500 border-slate-200"
-                )}
-              >
-                <item.icon size={14} />
-                <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Content Grid */}
         <div className="relative flex-1 flex flex-col">
           {/* Content Wrapper */}
           <div className={cn(
             "flex-1 flex flex-col transition-all duration-700",
-            !currentSubscription && mode !== AnalysisMode.ADMIN_KEYS ? "blur-2xl pointer-events-none opacity-50 grayscale" : ""
+            !currentSubscription && mode !== AnalysisMode.ADMIN_KEYS && mode !== AnalysisMode.SETTINGS ? "blur-2xl pointer-events-none opacity-50 grayscale" : ""
           )}>
             <AnimatePresence key={mode} mode="wait">
               {mode === AnalysisMode.ADMIN_KEYS ? (
@@ -461,22 +385,56 @@ const ArchRender = () => {
               className="flex-1 flex flex-col"
             >
               <GlassCard className="flex-1 p-8 overflow-auto border-slate-200 bg-white rounded-[32px] shadow-2xl">
-                <div className="max-w-4xl mx-auto">
-                  <div className="flex items-center gap-4 mb-12">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-                      <Terminal size={24} className="text-blue-500" />
+                <div className="max-w-6xl mx-auto">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                        <Terminal size={24} className="text-blue-500" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold tracking-tighter uppercase text-slate-900">Painel_Administrativo</h2>
+                        <p className="text-slate-400 font-mono text-[10px] tracking-[0.3em] uppercase">System_Control_Module</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-3xl font-bold tracking-tighter uppercase text-slate-900">Key_Generator_Module</h2>
-                      <p className="text-slate-400 font-mono text-[10px] tracking-[0.3em] uppercase">System_Administrative_Access</p>
+
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                      <button 
+                        onClick={() => setAdminSubTab('keys')}
+                        className={cn(
+                          "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                          adminSubTab === 'keys' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                      >
+                        Gerador de Chaves
+                      </button>
+                      <button 
+                        onClick={() => setAdminSubTab('users')}
+                        className={cn(
+                          "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                          adminSubTab === 'users' ? "bg-white text-black shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                      >
+                        Gestão de Usuários
+                      </button>
                     </div>
                   </div>
-                  <KeyGenerator />
+                  
+                  {adminSubTab === 'keys' ? <KeyGenerator /> : <UserManagement />}
                 </div>
               </GlassCard>
             </motion.div>
-          ) : (mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai') || (mode === AnalysisMode.IDENTITY && identitySubTab !== 'ai') ? (
-            (mode === AnalysisMode.ARCHITECTURE && archVizSubTab === 'aulas') ? (
+          ) : mode === AnalysisMode.SETTINGS ? (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex-1 flex flex-col"
+            >
+              <Settings />
+            </motion.div>
+          ) : mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' ? (
+            archVizSubTab === 'aulas' ? (
               <motion.div
                 key="academy"
                 initial={{ opacity: 0, y: 20 }}
@@ -494,7 +452,7 @@ const ArchRender = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="flex-1 flex flex-col"
               >
-                <Library isAdmin={isAdmin} mode={mode} />
+                <Library isAdmin={isAdmin} />
               </motion.div>
             )
           ) : (
@@ -942,7 +900,7 @@ const ArchRender = () => {
 
       {/* Locked Overlay */}
       <AnimatePresence>
-        {!currentSubscription && mode !== AnalysisMode.ADMIN_KEYS && (
+        {!currentSubscription && mode !== AnalysisMode.ADMIN_KEYS && mode !== AnalysisMode.SETTINGS && (
           <motion.div 
             key="locked-overlay"
             initial={{ opacity: 0 }}
