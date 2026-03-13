@@ -78,13 +78,6 @@ const ArchVizLanding = () => {
     prompt: 'Maquete arquitetônica detalhada de residência contemporânea, iluminação de estúdio, materiais realistas, base de madeira, foco seletivo, 8k.'
   });
 
-  const [activeIdentity, setActiveIdentity] = useState({
-    id: 'minimalista',
-    beforeImg: 'https://i.imgur.com/n3HXpNO.png',
-    afterImg: 'https://i.imgur.com/muSLxSC.png',
-    label: 'Minimalista'
-  });
-
   const styles = [
     { 
       id: 'maquete', 
@@ -113,33 +106,6 @@ const ArchVizLanding = () => {
       beforeImg: 'https://i.imgur.com/AbYbcc5.png', 
       afterImg: 'https://i.imgur.com/J0tZQHf.png', 
       prompt: 'Corte técnico arquitetônico detalhado, hachuras precisas, anotações de materiais, desenho técnico profissional, estilo CAD limpo.' 
-    }
-  ];
-
-  const identities = [
-    { 
-      id: 'minimalista', 
-      label: 'Minimalista', 
-      beforeImg: 'https://i.imgur.com/n3HXpNO.png', 
-      afterImg: 'https://i.imgur.com/muSLxSC.png', 
-    },
-    { 
-      id: 'industrial', 
-      label: 'Industrial', 
-      beforeImg: 'https://i.imgur.com/1RXnx6V.png', 
-      afterImg: 'https://i.imgur.com/RRiJicQ.png', 
-    },
-    { 
-      id: 'escandinavo', 
-      label: 'Escandinavo', 
-      beforeImg: 'https://i.imgur.com/JqsrHaZ.png', 
-      afterImg: 'https://i.imgur.com/G42060i.png', 
-    },
-    { 
-      id: 'biofilico', 
-      label: 'Biofílico', 
-      beforeImg: 'https://i.imgur.com/AbYbcc5.png', 
-      afterImg: 'https://i.imgur.com/J0tZQHf.png', 
     }
   ];
 
@@ -334,7 +300,6 @@ const ArchVizLanding = () => {
             <a href="#ferramentas" className="hover:text-black transition-colors">Ferramentas</a>
             <a href="#beneficios" className="hover:text-black transition-colors">Benefícios</a>
             <a href="#biblioteca" className="hover:text-black transition-colors">Biblioteca</a>
-            <a href="#identidade" className="hover:text-black transition-colors">AI Identidade</a>
             <a href="#oferta" className="hover:text-black transition-colors">Oferta</a>
           </div>
 
@@ -385,7 +350,6 @@ const ArchVizLanding = () => {
               <a href="#ferramentas" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Ferramentas</a>
               <a href="#beneficios" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Benefícios</a>
               <a href="#biblioteca" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Biblioteca</a>
-              <a href="#identidade" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">AI Identidade</a>
               <a href="#oferta" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Oferta</a>
               <button 
                 onClick={() => { 
@@ -592,39 +556,6 @@ const ArchVizLanding = () => {
               </div>
             </div>
 
-            {/* Tool 5 - AI IDENTIDADE */}
-            <div id="identidade" className="card-hover p-8 rounded-[32px] bg-white border border-border section-reveal flex flex-col group">
-              <div className="flex items-start justify-between mb-8">
-                <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shadow-sm border border-border">
-                  <Fingerprint className="w-7 h-7 text-black" />
-                </div>
-                <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">AI Identidade</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">AI - IDENTIDADE</h3>
-              <p className="text-slate-500 leading-relaxed mb-8">Defina a identidade visual única do seu projeto. Selecione uma identidade abaixo para visualizar.</p>
-              
-              <div className="mt-auto relative">
-                <div className="mb-6">
-                  <ComparisonSlider 
-                    key={activeIdentity.id}
-                    beforeImage={activeIdentity.beforeImg}
-                    afterImage={activeIdentity.afterImg}
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {identities.map((identity) => (
-                    <button 
-                      key={identity.id}
-                      className={`style-pill ${activeIdentity.id === identity.id ? 'active' : ''}`} 
-                      onClick={() => setActiveIdentity(identity as any)}
-                    >
-                      {identity.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

@@ -75,6 +75,7 @@ export const UserManagement = () => {
 
       setMessage({ type: 'success', text: 'Senha atualizada com sucesso!' });
       setPasswords(prev => ({ ...prev, [userId]: '' }));
+      fetchUsers(); // Sincroniza a lista
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Erro ao atualizar senha.' });
     } finally {
@@ -102,12 +103,23 @@ export const UserManagement = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Sessão não encontrada.');
 
-      if (error) throw error;
+      const response = await fetch('/api/admin/update-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          updates,
+          adminToken: session.access_token,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Erro ao atualizar plano.');
       
       setMessage({ type: 'success', text: 'Plano atualizado com sucesso!' });
       fetchUsers(); // Refresh list

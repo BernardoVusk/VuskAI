@@ -203,7 +203,9 @@ app.post("/api/generate-queue", async (req, res) => {
         return res.status(403).json({ error: 'Forbidden: Admin access required' });
       }
 
-      // Update user password using admin API
+      console.log(`[Admin] Atualizando senha para o usuário: ${userId}`);
+
+      // Update user password using admin API (bypasses RLS and user restrictions)
       const { error } = await supabase.auth.admin.updateUserById(
         userId,
         { password: newPassword }
@@ -214,6 +216,45 @@ app.post("/api/generate-queue", async (req, res) => {
       res.json({ message: 'Senha atualizada com sucesso!' });
     } catch (err: any) {
       console.error('Error updating password:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Admin: Update User Plan Expiry
+  app.post('/api/admin/update-plan', express.json(), async (req, res) => {
+    const { userId, updates, adminToken } = req.body;
+
+    if (!userId || !updates || !adminToken) {
+      return res.status(400).json({ error: 'User ID, updates and admin token are required' });
+    }
+
+    try {
+      // Verify admin status
+      const { data: { user }, error: authError } = await supabase.auth.getUser(adminToken);
+      
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const isAdmin = user.email === 'bernardomorais28@yahoo.com' || 
+                      user.email === 'espetoclips@gmail.com' || 
+                      user.user_metadata?.role === 'admin';
+
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Forbidden: Admin access required' });
+      }
+
+      // Update user profile using admin client (bypasses RLS)
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      res.json({ message: 'Plano atualizado com sucesso!' });
+    } catch (err: any) {
+      console.error('Error updating plan:', err);
       res.status(500).json({ error: err.message });
     }
   });
