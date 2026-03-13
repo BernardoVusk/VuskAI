@@ -23,6 +23,7 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { AuthModal } from '../components/auth/AuthModal';
 import { ComparisonSlider } from '../components/ui/ComparisonSlider';
+import { FAQAccordion } from '../components/ui/FAQAccordion';
 import { supabase } from '../lib/supabaseClient';
 import * as fbq from '../lib/pixel';
 
@@ -300,6 +301,7 @@ const ArchVizLanding = () => {
             <a href="#ferramentas" className="hover:text-black transition-colors">Ferramentas</a>
             <a href="#beneficios" className="hover:text-black transition-colors">Benefícios</a>
             <a href="#biblioteca" className="hover:text-black transition-colors">Biblioteca</a>
+            <a href="#faq" className="hover:text-black transition-colors">FAQ</a>
             <a href="#oferta" className="hover:text-black transition-colors">Oferta</a>
           </div>
 
@@ -350,6 +352,7 @@ const ArchVizLanding = () => {
               <a href="#ferramentas" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Ferramentas</a>
               <a href="#beneficios" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Benefícios</a>
               <a href="#biblioteca" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Biblioteca</a>
+              <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">FAQ</a>
               <a href="#oferta" onClick={() => setIsMobileMenuOpen(false)} className="py-2 px-8 hover:text-blue-500 transition-colors">Oferta</a>
               <button 
                 onClick={() => { 
@@ -702,6 +705,9 @@ const ArchVizLanding = () => {
           </div>
         </div>
       </section>
+
+      {/* FAQ SECTION */}
+      <FAQAccordion />
 
       {/* SLIDE FULLSCREEN MODAL */}
       <AnimatePresence>

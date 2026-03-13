@@ -439,7 +439,7 @@ const VuskAI = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="flex-1 flex flex-col"
               >
-                <Library isAdmin={isAdmin} />
+                <Library isAdmin={isAdmin} mode={mode} />
               </motion.div>
             ) : (
               <motion.div
