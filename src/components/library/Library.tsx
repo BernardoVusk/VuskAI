@@ -71,11 +71,18 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
       const { data, error } = await supabase
         .from('neural_library')
         .select('*')
-        .eq('mode', mode)
-        .order('created_at', { ascending: false });
+        .limit(1);
       
       if (error) throw error;
-      setItems(data || []);
+      console.log('Library sample data:', data);
+      
+      const { data: filteredData, error: filterError } = await supabase
+        .from('neural_library')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (filterError) throw filterError;
+      setItems(filteredData || []);
     } catch (error: any) {
       console.error('Error fetching library:', error);
     } finally {

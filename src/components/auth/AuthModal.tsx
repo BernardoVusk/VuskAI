@@ -20,6 +20,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [isCheckingSession, setIsCheckingSession] = useState(false);
 
   // Handle password update mode if we have a session but no password set (or from recovery)
   React.useEffect(() => {
@@ -31,8 +32,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       
       if (isAuthFlow) {
         setMode('update_password');
-        // Ensure Supabase has processed the hash/token
-        await supabase.auth.getSession();
+        setIsCheckingSession(true);
+        try {
+          // Ensure Supabase has processed the hash/token
+          const { data: { session }, error } = await supabase.auth.getSession();
+          console.log('Auth flow detected, session:', session ? 'Found' : 'Not found', error ? `Error: ${error.message}` : '');
+          
+          // If we don't have a session yet, wait a bit and try again
+          if (!session) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { data: { session: retrySession } } = await supabase.auth.getSession();
+            console.log('Retry session check:', retrySession ? 'Found' : 'Not found');
+          }
+        } catch (err) {
+          console.error('Error checking session during auth flow:', err);
+        } finally {
+          setIsCheckingSession(false);
+        }
       }
     };
 
@@ -77,22 +93,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             setMode('login');
         }
       } else if (mode === 'update_password') {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        if (sessionError) throw sessionError;
+
         if (!session) {
-          setError('Sessão de autenticação não encontrada. Isso pode acontecer se o link expirou ou se houve um erro ao processar o acesso. Por favor, tente clicar no link do e-mail novamente.');
+          setError('Sessão de autenticação não encontrada. Isso pode acontecer se o link expirou ou se houve um erro ao processar o acesso. Por favor, tente clicar no link do e-mail novamente ou solicite um novo link de recuperação.');
           setLoading(false);
           return;
         }
 
+        console.log('Attempting to update password for user:', session.user.email);
         const { error } = await supabase.auth.updateUser({
           password: password
         });
-        if (error) throw error;
         
-        window.history.replaceState(null, '', window.location.pathname);
-        onClose();
-        alert('Senha definida com sucesso! Sua conta está pronta.');
+        if (error) {
+          console.error('Password update error:', error);
+          throw error;
+        }
+        
+        console.log('Password updated successfully');
+        window.history.replaceState(null, '', window.location.origin + window.location.pathname);
+        setMessage('Senha definida com sucesso! Você já pode entrar.');
+        setMode('login');
+        setPassword('');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro. Tente novamente.');
