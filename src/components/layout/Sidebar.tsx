@@ -53,21 +53,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-[260px] h-full flex-col border border-slate-200 bg-white/80 backdrop-blur-3xl p-6 rounded-[32px] shadow-2xl relative overflow-hidden">
-        {/* Background Glow */}
+      <div className="hidden lg:flex w-[240px] h-full flex-col border border-white/20 bg-white/70 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] relative overflow-hidden">
+        {/* Subtle Background Glow */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
         
-        <div className="mb-12 px-2">
-          <div className="flex items-center gap-3 mb-1">
-            <img src={LOGO_URL} alt="ArchRender AI" className="h-32 w-auto object-contain" />
+        <div className="mb-10 px-3">
+          <div className="flex items-center gap-3">
+            <img src={LOGO_URL} alt="ArchRender AI" className="h-10 w-auto object-contain" />
           </div>
         </div>
 
-        <div className="mb-6 px-2">
-          <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500">Menu Principal</div>
+        <div className="mb-4 px-4">
+          <div className="text-[10px] font-semibold tracking-[0.15em] uppercase text-zinc-400">Menu Principal</div>
         </div>
 
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-1">
           {menuItems.map((item) => {
             const isLocked = item.id !== AnalysisMode.ADMIN_KEYS && item.id !== AnalysisMode.SETTINGS && !subscriptions[item.id as AnalysisMode]?.isActive;
             const isActive = currentMode === item.id;
@@ -77,21 +77,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onModeChange(item.id as AnalysisMode)}
                 className={cn(
-                  "w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden active:scale-[0.98]",
+                  "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group relative active:scale-[0.98]",
                   isActive 
-                    ? "bg-black text-white shadow-xl" 
-                    : "text-slate-500 hover:text-black hover:bg-slate-50"
+                    ? "text-zinc-900 font-semibold" 
+                    : "text-zinc-400 font-medium hover:text-zinc-600 hover:bg-zinc-50/50"
                 )}
               >
-                <div className="relative z-10 flex items-center gap-4">
+                <div className="relative z-10 flex items-center gap-3">
                   <item.icon 
                     size={18}
+                    strokeWidth={1.5}
                     className={cn(
-                      "transition-transform duration-500 group-hover:scale-110", 
-                      isActive ? "text-white" : "text-slate-400 group-hover:text-blue-500"
+                      "transition-colors duration-300", 
+                      isActive ? "text-zinc-900" : "text-zinc-400 group-hover:text-zinc-600"
                     )} 
                   />
-                  <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                  <span className="text-sm tracking-tight">{item.label}</span>
                 </div>
                 
                 {item.id !== AnalysisMode.ADMIN_KEYS && item.id !== AnalysisMode.SETTINGS && (
@@ -101,21 +102,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       if (isLocked) onUnlockRequest(item.id as AnalysisMode);
                     }}
                     className={cn(
-                      "relative z-10 p-1 rounded-full transition-all duration-500",
+                      "relative z-10 p-1 rounded-full transition-all duration-300",
                       isLocked 
-                        ? isActive ? "text-white/30" : "text-slate-300 group-hover:text-red-500" 
+                        ? isActive ? "text-zinc-300" : "text-zinc-300 group-hover:text-zinc-500" 
                         : "text-emerald-500"
                     )}
                   >
-                    {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                    {isLocked ? <Lock size={12} strokeWidth={1.5} /> : <Unlock size={12} strokeWidth={1.5} />}
                   </div>
                 )}
 
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active-pill"
-                    className="absolute inset-0 bg-black -z-10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className="absolute inset-0 bg-zinc-100/80 -z-10"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
               </button>
@@ -123,32 +124,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-100">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Sistema Online</span>
+        <div className="mt-auto pt-6 space-y-4">
+          <div className="px-4 py-3 rounded-xl bg-zinc-50/50 border border-zinc-100/50">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Sistema Online</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 leading-tight">
-              Processamento em tempo real ativo.
+            <div className="text-[10px] text-zinc-400 leading-tight">
+              Processamento neural ativo.
             </div>
           </div>
 
           {onLogout && (
             <button 
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group active:scale-95"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-50/50 transition-all duration-300 group active:scale-95"
             >
-              <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
-              <span className="text-xs font-bold uppercase tracking-widest">Sair da Conta</span>
+              <LogOut size={18} strokeWidth={1.5} className="group-hover:translate-x-0.5 transition-transform" />
+              <span className="text-sm font-medium">Sair da Conta</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Mobile Tab Bar */}
+      {/* Mobile Tab Bar - Refactored for Elite Aesthetic */}
       <div className="lg:hidden fixed bottom-6 left-6 right-6 z-[100]">
-        <div className="bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[24px] p-2 flex items-center justify-around shadow-2xl">
+        <div className="bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl p-1 flex items-center justify-around shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
           {menuItems.filter(item => item.id !== AnalysisMode.ADMIN_KEYS).map((item) => {
             const isActive = currentMode === item.id;
             return (
@@ -156,21 +157,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onModeChange(item.id as AnalysisMode)}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all duration-300 active:scale-90",
-                  isActive ? "text-black" : "text-slate-400"
+                  "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 active:scale-90 relative",
+                  isActive ? "text-zinc-900" : "text-zinc-400"
                 )}
               >
-                <div className={cn(
-                  "p-2 rounded-xl transition-all duration-300",
-                  isActive ? "bg-black/5" : ""
-                )}>
-                  <item.icon size={20} />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+                <item.icon size={20} strokeWidth={1.5} />
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-active"
-                    className="w-1 h-1 rounded-full bg-blue-500 mt-1"
+                    className="absolute inset-0 bg-zinc-100/80 -z-10 rounded-xl"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
               </button>

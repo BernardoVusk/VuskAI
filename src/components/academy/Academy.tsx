@@ -253,20 +253,20 @@ export const Academy: React.FC<AcademyProps> = ({ isAdmin }) => {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-4 md:space-y-8 pb-20">
       {/* Admin Header Actions */}
       {isAdmin && (
-        <div className="flex gap-4 mb-8">
+        <div className="flex flex-row gap-2 md:gap-4 mb-4 md:mb-8">
           <Button 
             onClick={() => {
               setEditingModule(null);
               setModuleForm({ title: '', description: '', order: modules.length });
               setIsModuleModalOpen(true);
             }}
-            className="bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-xl px-6 py-2 flex items-center gap-2 shadow-sm"
+            className="flex-1 bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-xl px-3 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 shadow-sm"
           >
-            <Plus size={16} />
-            <span className="text-xs font-bold uppercase tracking-widest">Novo Módulo</span>
+            <Plus size={14} className="md:w-4 md:h-4" />
+            <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Módulo</span>
           </Button>
           <Button 
             onClick={() => {
@@ -280,17 +280,48 @@ export const Academy: React.FC<AcademyProps> = ({ isAdmin }) => {
               });
               setIsLessonModalOpen(true);
             }}
-            className="bg-black text-white hover:bg-slate-900 rounded-xl px-6 py-2 flex items-center gap-2 shadow-lg"
+            className="flex-1 bg-black text-white hover:bg-slate-900 rounded-xl px-3 md:px-6 py-2 md:py-3 flex items-center justify-center gap-2 shadow-lg"
           >
-            <Video size={16} />
-            <span className="text-xs font-bold uppercase tracking-widest">Nova Aula</span>
+            <Video size={14} className="md:w-4 md:h-4" />
+            <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Aula</span>
           </Button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        {/* Right: Video Player (Moved up on mobile) */}
+        <div className="lg:col-span-7 lg:order-2">
+          <GlassCard className="aspect-video relative overflow-hidden border-slate-200 bg-white rounded-3xl md:rounded-[32px] shadow-2xl flex items-center justify-center">
+            {selectedLesson ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedLesson.video_id}?autoplay=1&rel=0&modestbranding=1`}
+                title={selectedLesson.title}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="flex flex-col items-center text-slate-300 p-8 text-center">
+                <Video size={48} className="mb-4 opacity-20" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">Selecione uma aula para começar</p>
+              </div>
+            )}
+          </GlassCard>
+          
+          {selectedLesson && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 md:mt-6 p-5 md:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm"
+            >
+              <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight">{selectedLesson.title}</h2>
+              <p className="text-xs md:text-sm text-slate-500 leading-relaxed font-medium">{selectedLesson.description}</p>
+            </motion.div>
+          )}
+        </div>
+
         {/* Left: Module List */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 lg:order-1 space-y-3 md:space-y-4">
           {modules.map((mod) => (
             <div key={mod.id} className="space-y-2">
               <div
@@ -425,35 +456,7 @@ export const Academy: React.FC<AcademyProps> = ({ isAdmin }) => {
         </div>
 
         {/* Right: Video Player */}
-        <div className="lg:col-span-7">
-          <GlassCard className="aspect-video relative overflow-hidden border-slate-200 bg-white rounded-[32px] shadow-2xl flex items-center justify-center">
-            {selectedLesson ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${selectedLesson.video_id}?autoplay=1&rel=0&modestbranding=1`}
-                title={selectedLesson.title}
-                className="absolute inset-0 w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <div className="flex flex-col items-center text-slate-300">
-                <Video size={48} className="mb-4 opacity-20" />
-                <p className="text-xs font-bold uppercase tracking-widest">Selecione uma aula para começar</p>
-              </div>
-            )}
-          </GlassCard>
-          
-          {selectedLesson && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 p-6 rounded-[24px] bg-white border border-slate-200 shadow-sm"
-            >
-              <h2 className="text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight">{selectedLesson.title}</h2>
-              <p className="text-sm text-slate-500 leading-relaxed font-medium">{selectedLesson.description}</p>
-            </motion.div>
-          )}
-        </div>
+        {/* Removed from here and moved up for mobile stacking */}
       </div>
 
       {/* Modals */}

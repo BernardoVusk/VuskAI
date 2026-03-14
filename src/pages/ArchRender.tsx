@@ -189,7 +189,7 @@ const ArchRender = () => {
   if (!mounted) return null;
 
   return (
-    <div className="relative flex min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-blue-500/10 overflow-x-hidden">
+    <div className="relative flex min-h-screen bg-[#F5F5F7] text-slate-900 selection:bg-blue-500/10 overflow-x-hidden max-w-[100vw]">
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
@@ -217,8 +217,8 @@ const ArchRender = () => {
 
       {/* Mobile Navigation */}
       <div className="lg:hidden">
-        <div className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 z-[60] flex items-center px-6">
-          <img src={LOGO_URL} alt="ArchRender AI" className="h-24 w-auto" />
+        <div className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 z-[60] flex items-center px-6">
+          <img src={LOGO_URL} alt="ArchRender AI" className="h-16 w-auto" />
         </div>
         <Sidebar 
           currentMode={mode}
@@ -285,12 +285,12 @@ const ArchRender = () => {
 
       {/* Main Content Area */}
       <main className={cn(
-        "flex-1 p-4 md:p-8 pt-24 md:pt-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8",
+        "flex-1 p-4 md:p-8 pt-20 md:pt-8 relative z-10 flex flex-col min-h-screen transition-all duration-500 pb-32 lg:pb-8 overflow-x-hidden",
         mode === AnalysisMode.ARCHITECTURE ? "lg:ml-[520px]" : "lg:ml-[280px]"
       )}>
         
         {/* Header - Editorial Style */}
-        <header className="mb-8 md:mb-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-8 relative z-10">
+        <header className="mb-4 md:mb-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 md:gap-8 relative z-10">
           <motion.div
             key={mode}
             layout
@@ -299,14 +299,14 @@ const ArchRender = () => {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="w-full md:w-auto"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <div className="flex items-center gap-3 mb-4 md:mb-6">
+              <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse" />
                 Neural_Processing_Active
               </div>
             </div>
             
-            <h1 className="text-5xl sm:text-6xl md:text-fluid-9xl font-black tracking-tighter leading-[0.85] text-slate-900 uppercase">
+            <h1 className="text-3xl sm:text-6xl md:text-fluid-9xl font-black tracking-tighter leading-[0.85] text-slate-900 uppercase">
               {mode === AnalysisMode.ARCHITECTURE && archVizSubTab !== 'ai' 
                 ? archVizSubTab
                 : mode.split('_')[0]}
@@ -317,25 +317,25 @@ const ArchRender = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-end gap-4 w-full md:w-auto"
+            className="flex flex-col items-end gap-3 md:gap-4 w-full md:w-auto"
           >
             {currentSubscription ? (
-              <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-white border border-emerald-100 shadow-xl shadow-emerald-500/5 w-full md:w-auto justify-center md:justify-start">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
-                  <Unlock size={14} className="text-white" />
+              <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-white border border-emerald-100 shadow-xl shadow-emerald-500/5 w-full md:w-auto justify-center md:justify-start">
+                <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                  <Unlock size={12} className="text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Acesso Pro Ativo</div>
-                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{calculateRemainingDays(currentSubscription.expiresAt)} dias restantes</div>
+                  <div className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Acesso Pro Ativo</div>
+                  <div className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{calculateRemainingDays(currentSubscription.expiresAt)} dias restantes</div>
                 </div>
               </div>
             ) : (
               <button 
                 onClick={openKeyModal}
-                className="flex items-center gap-4 px-8 py-4 rounded-2xl bg-black text-white shadow-2xl shadow-black/20 hover:bg-slate-900 transition-all group w-full md:w-auto justify-center md:justify-start active:scale-95 hover:-translate-y-1"
+                className="flex items-center gap-4 px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-black text-white shadow-2xl shadow-black/20 hover:bg-slate-900 transition-all group w-full md:w-auto justify-center md:justify-start active:scale-95 hover:-translate-y-1"
               >
-                <Lock size={16} className="text-white/50 group-hover:text-white transition-colors" />
-                <span className="text-xs font-black uppercase tracking-[0.2em]">
+                <Lock size={14} className="text-white/50 group-hover:text-white transition-colors" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
                   Ativar Acesso Premium
                 </span>
               </button>
@@ -345,7 +345,7 @@ const ArchRender = () => {
 
         {/* Mobile Sub-tab Switcher for ArchViz */}
         {mode === AnalysisMode.ARCHITECTURE && (
-          <div className="lg:hidden flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+          <div className="lg:hidden flex p-1 bg-zinc-100 rounded-2xl mb-4 overflow-x-auto no-scrollbar">
             {[
               { id: 'ai', label: 'Gerador AI', icon: Terminal },
               { id: 'prompts', label: 'Biblioteca', icon: Layout },
@@ -355,14 +355,21 @@ const ArchRender = () => {
                 key={item.id}
                 onClick={() => setArchVizSubTab(item.id as any)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full border transition-all whitespace-nowrap active:scale-95",
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap active:scale-95 relative",
                   archVizSubTab === item.id 
-                    ? "bg-black text-white border-black" 
-                    : "bg-white text-slate-500 border-slate-200"
+                    ? "text-zinc-900 font-bold" 
+                    : "text-zinc-400 font-semibold"
                 )}
               >
-                <item.icon size={14} />
-                <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
+                <item.icon size={14} strokeWidth={archVizSubTab === item.id ? 2.5 : 2} />
+                <span className="text-[10px] uppercase tracking-wider">{item.label}</span>
+                {archVizSubTab === item.id && (
+                  <motion.div
+                    layoutId="archviz-mobile-tab"
+                    className="absolute inset-0 bg-white shadow-sm rounded-xl -z-10"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -472,25 +479,25 @@ const ArchRender = () => {
                   transition={{ delay: 0.2 }}
                   className="flex-1 flex flex-col -mx-4 md:mx-0"
                 >
-                  <GlassCard className="flex-1 flex flex-col p-0 relative group overflow-hidden border-x-0 md:border-x border-slate-200 bg-white md:rounded-[32px] rounded-none shadow-2xl">
+                  <GlassCard className="flex-1 flex flex-col p-0 relative group overflow-hidden border-x-0 md:border-x border-slate-200 bg-white md:rounded-[32px] rounded-3xl shadow-2xl">
                     {/* Decorative Elements */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
                     <div className="absolute inset-0 bg-grid-slate-900/[0.02] bg-[length:30px_30px]" />
                     
                     {/* Panel Header */}
-                    <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 z-20">
+                    <div className="relative flex items-center justify-between p-4 md:p-6 border-b border-slate-100 z-20">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center">
                           <Scan size={16} className="text-slate-600" />
                         </div>
                         <div>
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-900">Imagem de Referência</div>
+                          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-900">Imagem de Referência</div>
                         </div>
                       </div>
                     </div>
 
                     {/* Dropzone Area */}
-                    <div className="flex-1 relative md:m-4 md:rounded-[24px] overflow-hidden bg-slate-50 border-y md:border border-slate-200 group/drop">
+                    <div className="flex-1 relative md:m-4 md:rounded-[24px] overflow-hidden bg-slate-50 border-y md:border border-slate-200 group/drop min-h-[240px] md:min-h-[300px]">
                       <AnimatePresence mode="wait">
                         {image ? (
                           <motion.div 
@@ -564,11 +571,11 @@ const ArchRender = () => {
                     </div>
 
                     {/* Action Button Area */}
-                    <div className="p-4 sm:p-6 pt-2">
+                    <div className="p-4 md:p-6 pt-2">
                       <Button 
                         variant="custom"
                         className={cn(
-                          "w-full h-14 sm:h-16 rounded-2xl text-sm font-bold transition-all duration-500 active:scale-[0.98] uppercase tracking-widest",
+                          "w-full h-12 md:h-16 rounded-2xl text-sm font-bold transition-all duration-500 active:scale-[0.98] uppercase tracking-widest",
                           !image || status === AppStatus.ANALYZING 
                             ? "bg-slate-100 text-slate-400 border border-slate-200" 
                             : "bg-black text-white hover:bg-slate-900 shadow-xl"
@@ -627,7 +634,7 @@ const ArchRender = () => {
                     </div>
 
                     {/* Output Content */}
-                    <div className="flex-1 p-4 sm:p-8 relative overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-4 md:p-8 relative overflow-y-auto custom-scrollbar">
                       <AnimatePresence mode="wait">
                         {error ? (
                           <motion.div 

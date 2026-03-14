@@ -226,67 +226,21 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 pb-20">
+    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-8 pb-20 overflow-x-hidden">
       {/* Header & Filters */}
-      <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
-        <div className="flex-1 w-full md:max-w-md relative group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-          <input 
-            type="text"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/50 backdrop-blur-sm border border-slate-200/50 rounded-2xl py-4 pl-14 pr-6 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all shadow-sm font-medium"
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <div className="flex bg-slate-200/50 backdrop-blur-md p-1 rounded-full">
-            <button
-              onClick={() => setSelectedType('all')}
-              className={cn(
-                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
-                selectedType === 'all' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setSelectedType('image')}
-              className={cn(
-                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2",
-                selectedType === 'image' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <ImageIcon size={12} />
-              Images
-            </button>
-            <button
-              onClick={() => setSelectedType('video')}
-              className={cn(
-                "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2",
-                selectedType === 'video' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <Video size={12} />
-              Videos
-            </button>
+      <div className="flex flex-col gap-4 md:gap-8 items-stretch md:items-center justify-between md:flex-row w-full">
+        <div className="flex items-center justify-between gap-3 w-full md:w-auto">
+          <div className="flex-1 md:max-w-md relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+            <input 
+              type="text"
+              placeholder="Buscar prompts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 md:py-4 pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all shadow-sm font-medium"
+            />
           </div>
-
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={cn(
-                "px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 active:scale-95",
-                selectedCategory === cat 
-                  ? "bg-black text-white shadow-xl shadow-black/10" 
-                  : "bg-white/80 text-slate-500 border border-slate-200/50 hover:bg-white hover:text-black"
-              )}
-            >
-              {cat}
-            </button>
-          ))}
+          
           {isAdmin && (
             <button 
               onClick={() => {
@@ -306,12 +260,87 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                 });
                 setIsModalOpen(true);
               }}
-              className="bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500 hover:text-white rounded-full px-6 py-2.5 flex items-center gap-2 ml-2 transition-all duration-300 group shadow-sm"
+              className="md:hidden bg-blue-500 text-white rounded-xl p-3 shadow-lg active:scale-95 transition-all shrink-0"
             >
-              <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">New Prompt</span>
+              <Plus size={20} />
             </button>
           )}
+        </div>
+
+        <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 md:pb-0 items-center w-full">
+          {isAdmin && (
+            <button 
+              onClick={() => {
+                setEditingItem(null);
+                setForm({
+                  name: '',
+                  prompt_text: '',
+                  category: categories[1],
+                  type: 'image',
+                  tutorial_url: '',
+                  image_before: null,
+                  image_after: null,
+                  video_file: null,
+                  image_before_url: '',
+                  image_after_url: '',
+                  video_url: ''
+                });
+                setIsModalOpen(true);
+              }}
+              className="hidden md:flex bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500 hover:text-white rounded-full px-6 py-2.5 items-center gap-2 transition-all duration-300 group shadow-sm shrink-0"
+            >
+              <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Novo Prompt</span>
+            </button>
+          )}
+          <div className="flex bg-slate-200/50 backdrop-blur-md p-1 rounded-full shrink-0">
+            <button
+              onClick={() => setSelectedType('all')}
+              className={cn(
+                "px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
+                selectedType === 'all' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
+              )}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setSelectedType('image')}
+              className={cn(
+                "px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                selectedType === 'image' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
+              )}
+            >
+              <ImageIcon size={10} className="md:w-3 md:h-3" />
+              Imagens
+            </button>
+            <button
+              onClick={() => setSelectedType('video')}
+              className={cn(
+                "px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                selectedType === 'video' ? "bg-white text-black shadow-md" : "text-slate-500 hover:text-slate-800"
+              )}
+            >
+              <Video size={10} className="md:w-3 md:h-3" />
+              Vídeos
+            </button>
+          </div>
+
+          <div className="flex gap-1.5 md:gap-2 shrink-0">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "px-4 md:px-6 py-2 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-300 active:scale-95 whitespace-nowrap",
+                  selectedCategory === cat 
+                    ? "bg-black text-white shadow-xl shadow-black/10" 
+                    : "bg-white/80 text-slate-500 border border-slate-200/50 hover:bg-white hover:text-black"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -322,7 +351,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
           <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">Initializing Library...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-10">
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item) => (
               <motion.div
@@ -333,9 +362,9 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
-                <GlassCard className="group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl rounded-[32px] shadow-2xl flex flex-col h-full hover:shadow-black/5 transition-all duration-700 border border-slate-200/50">
+                <GlassCard className="group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl rounded-3xl md:rounded-[32px] shadow-2xl flex flex-col h-full hover:shadow-black/5 transition-all duration-700 border border-slate-200/50">
                   {/* Image Comparison or Video */}
-                  <div className="aspect-[3/4] relative overflow-hidden">
+                  <div className="aspect-square md:aspect-[3/4] relative overflow-hidden">
                     {item.type === 'video' && item.video_url ? (
                       <div className="w-full h-full relative">
                         <video 
@@ -413,29 +442,29 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-8 flex flex-col flex-1 bg-white/40 backdrop-blur-md">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-lg font-medium text-slate-900 tracking-tight line-clamp-1 uppercase tracking-[0.1em]">{item.name}</h3>
+                  <div className="p-4 md:p-8 flex flex-col flex-1 bg-white/40 backdrop-blur-md">
+                    <div className="flex items-start justify-between mb-3 md:mb-4">
+                      <h3 className="text-base md:text-lg font-medium text-slate-900 tracking-tight line-clamp-1 uppercase tracking-[0.1em]">{item.name}</h3>
                       <div className={cn(
-                        "w-2 h-2 rounded-full mt-2",
+                        "w-2 h-2 rounded-full mt-2 shrink-0",
                         item.type === 'video' ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                       )} />
                     </div>
 
                     {/* Technical Tags */}
-                    <div className="flex flex-wrap gap-2 mb-8">
+                    <div className="flex flex-wrap gap-1.5 md:gap-2 mb-6 md:mb-8">
                       {['V-Ray Style', '8K Resolution', 'Photorealistic', 'Global Illumination'].map((tag) => (
-                        <span key={tag} className="text-[9px] font-light uppercase tracking-widest text-slate-400 border border-slate-200/50 px-2 py-0.5 rounded-full">
+                        <span key={tag} className="text-[8px] md:text-[9px] font-light uppercase tracking-widest text-slate-400 border border-slate-200/50 px-2 py-0.5 rounded-full">
                           {tag}
                         </span>
                       ))}
                     </div>
                     
-                    <div className="mt-auto flex gap-3">
+                    <div className="mt-auto flex gap-2 md:gap-3">
                       <button 
                         onClick={() => handleCopyPrompt(item.prompt_text, item.id)}
                         className={cn(
-                          "flex-1 h-12 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 group relative overflow-hidden",
+                          "flex-1 h-10 md:h-12 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-2 md:gap-3 group relative overflow-hidden",
                           copiedId === item.id 
                             ? "bg-emerald-500 text-white" 
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-black"
@@ -450,8 +479,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                               exit={{ scale: 0 }}
                               className="flex items-center gap-2"
                             >
-                              <Check size={16} />
-                              <span>Copied!</span>
+                              <Check size={14} className="md:w-4 md:h-4" />
+                              <span>Copiado!</span>
                             </motion.div>
                           ) : (
                             <motion.div
@@ -461,8 +490,8 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                               exit={{ opacity: 0 }}
                               className="flex items-center gap-2"
                             >
-                              <Copy size={14} className="group-hover:scale-110 transition-transform" />
-                              <span>Copy Prompt</span>
+                              <Copy size={12} className="md:w-3.5 md:h-3.5 group-hover:scale-110 transition-transform" />
+                              <span>Copiar Prompt</span>
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -471,9 +500,9 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
                       {item.tutorial_url && (
                         <button
                           onClick={() => setActiveVideo(item.tutorial_url || null)}
-                          className="w-12 h-12 rounded-2xl border border-slate-200/50 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 group/btn"
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl border border-slate-200/50 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 group/btn"
                         >
-                          <Play size={16} className="fill-current group-hover/btn:scale-110 transition-transform" />
+                          <Play size={14} className="md:w-4 md:h-4 fill-current group-hover/btn:scale-110 transition-transform" />
                         </button>
                       )}
                     </div>
