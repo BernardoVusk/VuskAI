@@ -38,12 +38,12 @@ export const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
       
       {/* Labels */}
       <div className="absolute top-4 left-4 z-10">
-        <span className="px-3 py-1 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-[9px] uppercase tracking-[0.2em] font-bold text-white/50">
+        <span className="px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[9px] uppercase tracking-tight font-semibold text-white/70">
           {beforeLabel}
         </span>
       </div>
       <div className="absolute top-4 right-4 z-10">
-        <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[9px] uppercase tracking-[0.2em] font-bold text-white">
+        <span className="px-3 py-1.5 rounded-full bg-indigo-600/80 backdrop-blur-md border border-indigo-400/20 text-[9px] uppercase tracking-tight font-semibold text-white">
           {afterLabel}
         </span>
       </div>

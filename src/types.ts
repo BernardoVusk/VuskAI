@@ -91,3 +91,16 @@ export interface NeuralLibraryItem {
   tutorial_url?: string;
   created_at: string;
 }
+
+export type TicketStatus = 'analise' | 'concluido';
+
+export interface SupportTicket {
+  id: string;
+  protocol_id: number;
+  user_id: string;
+  user_email: string;
+  phone: string;
+  message: string;
+  status: TicketStatus;
+  created_at: string;
+}

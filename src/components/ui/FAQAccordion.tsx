@@ -11,18 +11,18 @@ interface FAQItemProps {
 
 const FAQItem = ({ question, answer, isOpen, onClick }: FAQItemProps) => {
   return (
-    <div className="border-b border-white/10 last:border-0">
+    <div className="border-b border-zinc-200/10 last:border-0">
       <button
         onClick={onClick}
         className="w-full py-6 flex items-center justify-between text-left group transition-all"
       >
-        <span className={`text-lg md:text-xl font-medium transition-colors ${isOpen ? 'text-white' : 'text-zinc-400 group-hover:text-white'}`}>
+        <span className={`text-lg md:text-xl font-semibold tracking-tight transition-colors ${isOpen ? 'text-white' : 'text-zinc-500 group-hover:text-white'}`}>
           {question}
         </span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className={`shrink-0 ml-4 ${isOpen ? 'text-blue-500' : 'text-zinc-500'}`}
+          className={`shrink-0 ml-4 ${isOpen ? 'text-indigo-500' : 'text-zinc-600'}`}
         >
           <ChevronDown className="w-6 h-6" />
         </motion.div>
@@ -85,14 +85,17 @@ export const FAQAccordion = () => {
   ];
 
   return (
-    <section id="faq" className="py-24 px-6 bg-black">
-      <div className="max-w-4xl mx-auto">
+    <section id="faq" className="py-24 px-6 bg-zinc-950 relative overflow-hidden">
+      {/* Background radial gradient */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-500/[0.02] blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-1 mb-6 bg-blue-500/10 text-blue-500 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest"
+            className="inline-block px-4 py-1 mb-6 bg-indigo-500/10 text-indigo-500 rounded-full text-[10px] md:text-xs font-semibold uppercase tracking-tight"
           >
             Dúvidas Frequentes
           </motion.div>
@@ -101,7 +104,7 @@ export const FAQAccordion = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-6"
+            className="text-3xl md:text-5xl font-semibold tracking-tighter text-white mb-6"
           >
             Perguntas de Ouro
           </motion.h2>
@@ -110,7 +113,7 @@ export const FAQAccordion = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-zinc-400 text-base md:text-lg"
+            className="text-zinc-500 text-base md:text-lg"
           >
             Tudo o que você precisa saber para entrar no Plano Fundador com segurança.
           </motion.p>
@@ -120,7 +123,7 @@ export const FAQAccordion = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="backdrop-blur-md bg-white/[0.02] border border-white/10 rounded-[32px] p-4 md:p-8 shadow-2xl"
+          className="backdrop-blur-md bg-white/[0.02] border border-white/5 rounded-[32px] p-4 md:p-8 shadow-2xl"
         >
           {faqs.map((faq, index) => (
             <FAQItem

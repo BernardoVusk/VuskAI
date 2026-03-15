@@ -4,6 +4,8 @@ import { Lock, Loader2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/Button';
+import { UserTicketList } from '../support/UserTicketList';
+import { MessageSquare } from 'lucide-react';
 
 export const Settings: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -119,6 +121,20 @@ export const Settings: React.FC = () => {
           </Button>
         </form>
       </GlassCard>
+
+      <div className="mt-16 space-y-8">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+            <MessageSquare size={24} className="text-blue-500" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tighter uppercase text-slate-900">Meus_Tickets</h2>
+            <p className="text-slate-400 font-mono text-[10px] tracking-[0.3em] uppercase">Histórico de Suporte</p>
+          </div>
+        </div>
+
+        <UserTicketList />
+      </div>
     </div>
   );
 };

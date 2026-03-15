@@ -17,8 +17,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     <motion.div 
       layout
       className={cn(
-        "relative bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-sm",
-        hoverEffect && "transition-all duration-500 hover:border-slate-300 hover:bg-slate-50 hover:shadow-2xl active:scale-[0.99]",
+        "relative bg-white border border-zinc-200 rounded-[32px] overflow-hidden shadow-sm",
+        hoverEffect && "transition-all duration-500 hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-2xl active:scale-[0.99]",
         className
       )}
     >

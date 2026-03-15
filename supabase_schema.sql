@@ -72,7 +72,7 @@ create table if not exists neural_library (
   prompt_text text not null,
   category text not null,
   type text not null check (type in ('image', 'video')),
-  mode text not null,
+  analysis_mode text not null,
   tutorial_url text,
   image_before_url text,
   image_after_url text,
@@ -88,26 +88,26 @@ create policy "Library items are viewable by everyone." on neural_library
 create policy "Only admins can insert library items." on neural_library
   for insert with check (
     auth.jwt() -> 'user_metadata' ->> 'role' = 'admin' OR 
-    auth.email() = 'espetoclips@gmail.com'
+    auth.jwt() ->> 'email' = 'espetoclips@gmail.com'
   );
 
 create policy "Only admins can update library items." on neural_library
   for update using (
     auth.jwt() -> 'user_metadata' ->> 'role' = 'admin' OR 
-    auth.email() = 'espetoclips@gmail.com'
+    auth.jwt() ->> 'email' = 'espetoclips@gmail.com'
   );
 
 create policy "Only admins can delete library items." on neural_library
   for delete using (
     auth.jwt() -> 'user_metadata' ->> 'role' = 'admin' OR 
-    auth.email() = 'espetoclips@gmail.com'
+    auth.jwt() ->> 'email' = 'espetoclips@gmail.com'
   );
 
 -- Enable realtime for history table
 alter publication supabase_realtime add table history;
 
 -- Sample data for neural_library
-INSERT INTO public.neural_library (name, prompt_text, image_after_url, category, type, mode)
+INSERT INTO public.neural_library (name, prompt_text, image_after_url, category, type, analysis_mode)
 VALUES 
 ('Modern Minimalist Living Room', 'Ultra-realistic 8k render of a modern minimalist living room, floor-to-ceiling windows, soft natural lighting, neutral color palette, high-end furniture, architectural photography.', 'https://picsum.photos/seed/living/800/600', 'Interior', 'image', 'ARCHITECTURE'),
 ('Futuristic Glass Pavilion', 'Futuristic glass pavilion in a lush forest, organic shapes, evening lighting with warm interior glow, reflections on glass, cinematic atmosphere, 4k resolution.', 'https://picsum.photos/seed/pavilion/800/600', 'Exterior', 'image', 'ARCHITECTURE'),

@@ -50,7 +50,7 @@ import { Library } from '../components/library/Library';
 import { VideoPromptManager } from '../components/admin/VideoPromptManager';
 import { NeuralLock } from '../components/ui/NeuralLock';
 import { supabase } from '../lib/supabaseClient';
-const LOGO_URL = "https://i.imgur.com/ptDOAO8.png";
+const LOGO_URL = "/logolimpa.png";
 
 const VuskAI = () => {
   const {

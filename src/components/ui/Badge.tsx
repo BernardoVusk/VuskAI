@@ -12,9 +12,9 @@ export const Badge = ({ className, variant = 'default', size = 'md', ...props }:
     success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
     warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
     error: 'bg-red-500/10 text-red-400 border border-red-500/20',
-    outline: 'bg-transparent border border-white/20 text-slate-300',
-    neon: 'bg-primary/10 text-primary-light border border-primary/30 shadow-[0_0_10px_rgba(124,58,237,0.2)]',
-    glow: 'bg-primary/20 text-white border border-primary/40 shadow-[0_0_15px_rgba(124,58,237,0.5)]',
+    outline: 'bg-transparent border border-zinc-200 text-zinc-500',
+    neon: 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20',
+    glow: 'bg-indigo-500/20 text-indigo-700 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]',
   };
 
   const sizes = {
@@ -25,7 +25,7 @@ export const Badge = ({ className, variant = 'default', size = 'md', ...props }:
   return (
     <span
       className={cn(
-        'inline-flex items-center justify-center rounded-full font-mono font-medium tracking-wide',
+        'inline-flex items-center justify-center rounded-full font-semibold tracking-tight uppercase',
         variants[variant],
         sizes[size],
         className

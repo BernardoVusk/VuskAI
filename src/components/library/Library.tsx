@@ -71,18 +71,11 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
       const { data, error } = await supabase
         .from('neural_library')
         .select('*')
-        .limit(1);
-      
-      if (error) throw error;
-      console.log('Library sample data:', data);
-      
-      const { data: filteredData, error: filterError } = await supabase
-        .from('neural_library')
-        .select('*')
+        .eq('analysis_mode', mode)
         .order('created_at', { ascending: false });
       
-      if (filterError) throw filterError;
-      setItems(filteredData || []);
+      if (error) throw error;
+      setItems(data || []);
     } catch (error: any) {
       console.error('Error fetching library:', error);
     } finally {
@@ -150,7 +143,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
         prompt_text: form.prompt_text,
         category: form.category,
         type: form.type,
-        mode: mode,
+        analysis_mode: mode,
         tutorial_url: form.tutorial_url,
         image_before_url: beforeUrl || '',
         image_after_url: form.type === 'image' ? (afterUrl || '') : '',
@@ -159,20 +152,23 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
 
       let error;
       if (editingItem) {
-        const result = await supabase
+        console.log('Updating item:', editingItem.id, itemData);
+        const { error: updateError } = await supabase
           .from('neural_library')
           .update(itemData)
           .eq('id', editingItem.id);
-        error = result.error;
+        error = updateError;
       } else {
-        const result = await supabase
+        console.log('Inserting new item:', itemData);
+        const { error: insertError } = await supabase
           .from('neural_library')
           .insert([itemData]);
-        error = result.error;
+        error = insertError;
       }
 
       if (error) throw error;
 
+      console.log('Save successful');
       setIsModalOpen(false);
       setEditingItem(null);
       setForm({
@@ -226,7 +222,7 @@ export const Library: React.FC<LibraryProps> = ({ isAdmin, mode }) => {
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-8 pb-20 overflow-x-hidden">
+    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-8 pb-20 overflow-x-hidden px-4 md:px-0">
       {/* Header & Filters */}
       <div className="flex flex-col gap-4 md:gap-8 items-stretch md:items-center justify-between md:flex-row w-full">
         <div className="flex items-center justify-between gap-3 w-full md:w-auto">

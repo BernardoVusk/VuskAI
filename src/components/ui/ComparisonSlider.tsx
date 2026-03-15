@@ -52,10 +52,10 @@ export const ComparisonSlider: React.FC<ComparisonSliderProps> = ({
         />
       </div>
       <div className="ba-handle" style={{ left: `${sliderPercent}%` }}></div>
-      <div className="absolute top-4 left-4 z-10 bg-black/50 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm">
+      <div className="absolute top-4 left-4 z-10 bg-black/40 text-white text-[10px] px-3 py-1.5 rounded-full uppercase font-semibold tracking-tight backdrop-blur-md border border-white/10">
         {beforeLabel}
       </div>
-      <div className="absolute top-4 right-4 z-10 bg-blue-500/80 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm">
+      <div className="absolute top-4 right-4 z-10 bg-indigo-600/80 text-white text-[10px] px-3 py-1.5 rounded-full uppercase font-semibold tracking-tight backdrop-blur-md border border-indigo-400/20">
         {afterLabel}
       </div>
     </div>

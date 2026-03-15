@@ -8,7 +8,7 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-const LOGO_URL = "https://i.imgur.com/JeRxE3T.png";
+const LOGO_URL = "/logolimpa.png";
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [mode, setMode] = useState<'login' | 'signup' | 'update_password'>('login');

@@ -28,7 +28,7 @@ import { supabase } from '../lib/supabaseClient';
 import * as fbq from '../lib/pixel';
 
 // Image URLs
-const LOGO_URL = "https://i.imgur.com/ptDOAO8.png"; 
+const LOGO_URL = "/logolimpa.png"; 
 
 gsap.registerPlugin(ScrollTrigger);
 

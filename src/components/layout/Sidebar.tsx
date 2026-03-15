@@ -12,7 +12,8 @@ import {
   Shield,
   Key,
   LogOut,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AnalysisMode, UserSubscriptions } from '../../types';
@@ -26,6 +27,7 @@ interface SidebarProps {
   onAdminClick?: () => void;
   onLogout?: () => void;
   isAdmin?: boolean;
+  onSupportClick?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -35,7 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onUnlockRequest,
   onAdminClick,
   onLogout,
-  isAdmin = false
+  isAdmin = false,
+  onSupportClick
 }) => {
   const menuItems = [
     { id: AnalysisMode.IDENTITY, label: 'Identidade', icon: User },
@@ -53,9 +56,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-[240px] h-full flex-col border border-white/20 bg-white/70 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] relative overflow-hidden">
+      <div className="hidden lg:flex w-[240px] h-full flex-col border border-zinc-100 bg-white/80 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.02)] relative overflow-hidden">
         {/* Subtle Background Glow */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none" />
         
         <div className="mb-10 px-3">
           <div className="flex items-center gap-3">
@@ -113,11 +116,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
 
                 {isActive && (
-                  <motion.div
-                    layoutId="sidebar-active-pill"
-                    className="absolute inset-0 bg-zinc-100/80 -z-10"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                  />
+                  <>
+                    <motion.div
+                      layoutId="sidebar-active-pill"
+                      className="absolute inset-0 bg-zinc-50 border border-zinc-100 -z-10"
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                    <motion.div
+                      layoutId="sidebar-active-indicator"
+                      className="absolute left-0 top-3 bottom-3 w-0.5 bg-indigo-600 rounded-full"
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  </>
                 )}
               </button>
             );
@@ -125,15 +135,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="mt-auto pt-6 space-y-4">
-          <div className="px-4 py-3 rounded-xl bg-zinc-50/50 border border-zinc-100/50">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Sistema Online</span>
-            </div>
-            <div className="text-[10px] text-zinc-400 leading-tight">
-              Processamento neural ativo.
-            </div>
-          </div>
+          {onSupportClick && (
+            <button 
+              onClick={onSupportClick}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group active:scale-95"
+            >
+              <MessageSquare size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
+              <span className="text-sm font-medium">Suporte & Feedback</span>
+            </button>
+          )}
 
           {onLogout && (
             <button 
@@ -149,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Mobile Tab Bar - Refactored for Elite Aesthetic */}
       <div className="lg:hidden fixed bottom-6 left-6 right-6 z-[100]">
-        <div className="bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl p-1 flex items-center justify-around shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+        <div className="bg-white/80 backdrop-blur-xl border border-zinc-100 rounded-2xl p-1 flex items-center justify-around shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
           {menuItems.filter(item => item.id !== AnalysisMode.ADMIN_KEYS).map((item) => {
             const isActive = currentMode === item.id;
             return (
@@ -158,14 +168,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onModeChange(item.id as AnalysisMode)}
                 className={cn(
                   "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 active:scale-90 relative",
-                  isActive ? "text-zinc-900" : "text-zinc-400"
+                  isActive ? "text-indigo-600" : "text-zinc-400"
                 )}
               >
                 <item.icon size={20} strokeWidth={1.5} />
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-active"
-                    className="absolute inset-0 bg-zinc-100/80 -z-10 rounded-xl"
+                    className="absolute inset-0 bg-indigo-50/50 -z-10 rounded-xl"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
